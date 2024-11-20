@@ -213,9 +213,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="description" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="description"><span class="header-section-number">2.1</span> Description</h2>
 <p>The 2018 Central Park Squirrel Census dataset is a squirrel sighting data collected by 23 volunteer Squirrel Sighters in October of 2018. Throughout two weeks of time, they will walk around the Central Park and document each sighting of squirrels. From their website The Squirrel Census, they don’t have a specific data collecting and updating cycle, as they collected data in 2012, 2016, 2018 and 2020. This may due to the fact that this is more like a volunteering project. We are not using the latest data because it only includes 434 sightings but were collected from 24 different parks, making the data too sparse to analyze. Therefore, we choose the 2018 dataset that focused on the squirrels in Central Park. The dataset is in tabular format with 3023 rows and 31 columns. Each row is an instance of sighting squirrels. The columns capture different aspect of the sighting, including location, time, number of squirrels, what were squirrels doing, etc. The data were well-collected and well-documented, so there is no issue interpreting them. One issue was some data are in the type of Checkbox, but if downloading the dataset as a csv file, which is an available option, Checkbox type will be automaticly convert into True and False values. Additionally, there are some extra information columns that contains field notes, which we need to consider how to deal with.</p>
+<p>Source of data: <a href="https://data.cityofnewyork.us/Environment/2018-Central-Park-Squirrel-Census-Squirrel-Data/vfnx-vebw/about_data">Squirrel Census Dateset</a>, <a href="https://www.thesquirrelcensus.com/">The Squirrel Census official website</a></p>
 </section>
 <section id="missing-value-analysis" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="missing-value-analysis"><span class="header-section-number">2.2</span> Missing value analysis</h2>
+<p><strong>Import required libraries and data:</strong></p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -227,6 +229,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>squirrel_data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"./2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
+<p><strong>Get missing value count:</strong></p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -253,6 +256,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 # ℹ 21 more rows</code></pre>
 </div>
 </div>
+<p>The results in the above table are shown in a descending value, this means there seems to be no missing value for our dataset. However, with a more careful inspection of our data, there are missing values. It’s just all the missing values are empty cells instead of NA.</p>
+<p><strong>Convert the missing value to NA:</strong></p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -304,10 +309,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 31 Lat.Long                                              0              0   </code></pre>
 </div>
 </div>
+<p>With the updated dataset, now we see a lot of missing values for some of the columns. Let’s create a graph to show the distribution of the these missing valus.</p>
+<p><strong>Percentage of missing data:</strong></p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(missing_values, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(Column, <span class="sc">-</span>MissingCount), <span class="at">y =</span> MissingCount)) <span class="sc">+</span></span>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(missing_values, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(Column, <span class="sc">-</span>MissingPercentage), <span class="at">y =</span> MissingPercentage)) <span class="sc">+</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"steelblue"</span>) <span class="sc">+</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Percentage of Missing Values by Column"</span>,</span>
@@ -324,36 +331,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
+<p>For the columns with missing data, the top four all have more than 80% of missing data, some even reaching 95%. The fifth one also have around 35% missing data. However, these does not cause any major issue because these five columns hold the text data that serves as field notes. They record additional information about squirrel colors, how they interact with people, what they are doing and the specific location they were found like “under a tree”. These won’t affect our main exploratory analysis as we won’t be using them. But we will use them as notes when creating a interactive map to demonstrate the spacial distribution of squirrels within Central Park.<br>
+For the rest of the missing value, we may choose to either remove the rows directly, as they only take a small portion of the data, or assign a special value to them.</p>
+<p>Now we will take a closer look at the distribution of the columns with top five number of missing values.</p>
+<p><strong>A more detailed visualization of the top five missing value with the library <em>naniar</em></strong></p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(missing_values, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(Column, <span class="sc">-</span>MissingPercentage), <span class="at">y =</span> MissingPercentage)) <span class="sc">+</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"steelblue"</span>) <span class="sc">+</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Percentage of Missing Values by Column"</span>,</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Columns"</span>,</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Missing Percentage (%)"</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(naniar)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gg_miss_upset</span>(squirrel_data) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
 <p><img src="data_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(naniar)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gg_miss_upset</span>(squirrel_data) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="data_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>

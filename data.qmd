@@ -5,3 +5,66 @@
 The 2018 Central Park Squirrel Census dataset is a squirrel sighting data collected by 23 volunteer Squirrel Sighters in October of 2018. Throughout two weeks of time, they will walk around the Central Park and document each sighting of squirrels. From their website The Squirrel Census, they don't have a specific data collecting and updating cycle, as they collected data in 2012, 2016, 2018 and 2020. This may due to the fact that this is more like a volunteering project. We are not using the latest data because it only includes 434 sightings but were collected from 24 different parks, making the data too sparse to analyze. Therefore, we choose the 2018 dataset that focused on the squirrels in Central Park. The dataset is in tabular format with 3023 rows and 31 columns. Each row is an instance of sighting squirrels. The columns capture different aspect of the sighting, including location, time, number of squirrels, what were squirrels doing, etc. The data were well-collected and well-documented, so there is no issue interpreting them. One issue was some data are in the type of Checkbox, but if downloading the dataset as a csv file, which is an available option, Checkbox type will be automaticly convert into True and False values. Additionally, there are some extra information columns that contains field notes, which we need to consider how to deal with. 
 
 ## Missing value analysis
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(tidyverse)
+
+squirrel_data <- read.csv("/Users/sazle/Documents/GitHub/squirrels_in_central_park/2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv")
+#squirrel_data <- read.csv("2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv")
+```
+
+
+```{r}
+squirrel_data |>
+  summarize(across(everything(), ~ sum(is.na(.)))) |>
+  pivot_longer(everything(), names_to = "Column", values_to = "MissingCount") |>
+  mutate(MissingPercentage = (MissingCount / nrow(squirrel_data)) * 100) |>
+  arrange(desc(MissingPercentage))
+```
+
+
+```{r}
+squirrel_data <- squirrel_data |>
+  mutate(across(everything(), ~ na_if(as.character(.), "")))
+
+missing_values <- squirrel_data |>
+  summarize(across(everything(), ~ sum(is.na(.)))) |>
+  pivot_longer(everything(), names_to = "Column", values_to = "MissingCount") |>
+  mutate(MissingPercentage = (MissingCount / nrow(squirrel_data)) * 100) |>
+  arrange(desc(MissingPercentage))
+
+print(missing_values, n = nrow(missing_values))
+```
+
+
+```{r}
+ggplot(missing_values, aes(x = reorder(Column, -MissingCount), y = MissingCount)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(
+    title = "Percentage of Missing Values by Column",
+    x = "Columns",
+    y = "Missing Percentage (%)"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+```{r}
+ggplot(missing_values, aes(x = reorder(Column, -MissingPercentage), y = MissingPercentage)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(
+    title = "Percentage of Missing Values by Column",
+    x = "Columns",
+    y = "Missing Percentage (%)"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+library(naniar)
+gg_miss_upset(squirrel_data) 
+```
+

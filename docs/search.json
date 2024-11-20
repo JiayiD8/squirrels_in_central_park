@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Squirrels in Central Park",
     "section": "",
-    "text": "1 Introduction",
+    "text": "1 Introduction\nWe choose to explore this dataset becuase we are interested in squirrels activities in NYC central parks. Central part plays a main role in New Yorkers life and tourist’s experience as it provide unique chance for people to interact with wildlife in the middle of the urban life. Understanding the activity patterns of squirrels can help us learn how to coexist with them and appreciate their role in the park’s ecosystem.\nThe dataset provides detailed information about the squirrels in central part, including their physical attributes such as fur color and age, sighting distribution across the park, and behaviors such as climbing, foraging, and making sounds. It also captures interactions between squirrels and humans, such as approaches, indifference, or avoidance, giving a sense that how these animals react to the appearence of human in their living environment.\nBy analyzing this data, we are explring questions about the squirrels’ location patterns, activity preferences, and social behaviors, while also discovering ecological trends within the park.",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Introduction</span>"
     ]

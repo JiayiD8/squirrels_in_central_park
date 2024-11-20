@@ -12,8 +12,7 @@ library(dplyr)
 library(tidyr)
 library(tidyverse)
 
-squirrel_data <- read.csv("/Users/sazle/Documents/GitHub/squirrels_in_central_park/2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv")
-#squirrel_data <- read.csv("2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv")
+squirrel_data <- read.csv("./2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv")
 ```
 
 

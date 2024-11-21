@@ -25,7 +25,8 @@ squirrel_data |>
   summarize(across(everything(), ~ sum(is.na(.)))) |>
   pivot_longer(everything(), names_to = "Column", values_to = "MissingCount") |>
   mutate(MissingPercentage = (MissingCount / nrow(squirrel_data)) * 100) |>
-  arrange(desc(MissingPercentage))
+  arrange(desc(MissingPercentage)) |>
+  head()
 ```
 The results in the above table are shown in a descending value, this means there seems to be no missing value for our dataset. However, with a more careful inspection of our data, there are missing values. It's just all the missing values are empty cells instead of NA.
 
@@ -40,7 +41,7 @@ missing_values <- squirrel_data |>
   mutate(MissingPercentage = (MissingCount / nrow(squirrel_data)) * 100) |>
   arrange(desc(MissingPercentage))
 
-print(missing_values, n = nrow(missing_values))
+print(missing_values, n = 15)
 ```
 With the updated dataset, now we see a lot of missing values for some of the columns. Let's create a graph to show the distribution of the these missing valus.
 
@@ -65,4 +66,4 @@ Now we will take a closer look at the distribution of the columns with top five 
 library(naniar)
 gg_miss_upset(squirrel_data) 
 ```
-
+The upset plot help show how missing value in the top five variable(with most NAs in the percentage plot) overlapping with each others. The horizontal bars at the bottom left is a brief view of the count for the top five missing value. The connected dots in the bottom providing information about which columns contribute to the overlapped missing count showed in the vertical bar above. For example, there are 1224 rows have missing values in all four variables (except highlight fur color). This indicates that more than 1/3 of all the cases, those columns that records additional notes other than previous Yes/No checks are all empty. As we doing further analysis, we can consider encoding those columns into Y/N factors variables based on having additional info or not. 

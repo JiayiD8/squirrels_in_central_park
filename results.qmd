@@ -20,3 +20,50 @@ scale_colour_manual(values = c('black', 'brown','grey', 'white')) +
 theme_minimal()  +
 labs(title = 'Squirrel Sighting Locations by Colour')
 ```
+
+
+```{r}
+# Load required libraries
+library(ggplot2)
+library(ggridges)
+library(dplyr)
+library(lubridate)
+
+# Convert the Date column to proper date format
+squirrel_data <- squirrel_data %>%
+  mutate(
+    Date = as.Date(Date, format = "%m%d%Y"),
+    # Make Shift a factor with PM first so AM appears on top
+    Shift = factor(Shift, levels = c("PM", "AM"))
+  )
+
+# Create the ridgeline plot
+ggplot(squirrel_data, aes(x = Date, y = Shift, fill = Shift)) +
+  geom_density_ridges(
+    alpha = 0.6,
+    scale = 0.9,
+    rel_min_height = 0.01
+  ) +
+  scale_fill_manual(
+    values = c("AM" = "#FDB462", "PM" = "#80B1D3")
+  ) +
+  scale_x_date(
+    # Show every date on x-axis
+    date_breaks = "1 day",
+    date_labels = "%b %d",
+    expand = c(0.01, 0) 
+  ) +
+  labs(
+    title = "Distribution of Squirrel Sightings",
+    subtitle = "By Time of Day",
+    x = "Date",
+    y = "Shift"
+  ) +
+  theme_ridges() +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+```

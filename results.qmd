@@ -64,22 +64,15 @@ squirrel_data <- squirrel_data |>
 
 ```{r fig.width=10, fig.height=8}
 library(sf)
-x_sf <- squirrel_data |>
-mutate(Foraging = if_else(Foraging == TRUE, 
-                      'Foraging',
-                         if_else(Foraging == FALSE, 
-                                'Not Foraging', 'Other'))) |>
-mutate(Running = if_else(Running == TRUE, 
-                      'Running',
-                         if_else(Running == FALSE, 
-                                'Not Running', 'Other'))) |>
-  st_as_sf(coords = c('X', 'Y'), crs = 4326) 
+coord_sf_obj <- squirrel_data |>
+  st_as_sf(coords = c('X', 'Y'), crs = 4326) # crs=4326 refers to the "Coordinate Reference System" with EPSG code 4326. This ensures the coordinates are plot correctly.
 
-  ggplot() + 
-    geom_sf(data = x_sf, aes(colour = squirrel_data$Primary.Fur.Color), size = 1.5, shape = 1, alpha = .7) + 
-scale_colour_manual(values = c('black', 'brown','grey', 'white')) + 
-theme_minimal()  +
-labs(title = 'Squirrel Sighting Locations by Colour')
+ggplot() + 
+    geom_sf(data = coord_sf_obj, aes(colour = squirrel_data$Primary.Fur.Color), 
+            size = 1.5, shape = 1, alpha = .7) + 
+    scale_colour_manual(values = c('black', 'brown','grey')) + 
+    theme_minimal()  +
+    labs(title = 'Squirrel Sighting Locations by Colour')
 ```
 
 ```{r}

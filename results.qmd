@@ -11,7 +11,8 @@ library(lubridate)
 squirrel_data <- read.csv("./2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv")
 squirrel_data <- squirrel_data |>
   mutate(across(everything(), ~ na_if(as.character(.), ""))) |>
-  drop_na(Age, Location, Primary.Fur.Color)
+  drop_na(Age, Location, Primary.Fur.Color) |>
+  filter(Age != "?")
 ```
 
 ```{r}
@@ -76,11 +77,31 @@ mutate(Running = if_else(Running == TRUE,
 
   ggplot() + 
     geom_sf(data = x_sf, aes(colour = squirrel_data$Primary.Fur.Color), size = 1.5, shape = 1, alpha = .7) + 
-facet_grid(Running~Foraging) + 
 scale_colour_manual(values = c('black', 'brown','grey', 'white')) + 
 theme_minimal()  +
 labs(title = 'Squirrel Sighting Locations by Colour')
 ```
+```{r}
+library(sf)
+x_sf <- squirrel_data |>
+mutate(Foraging = if_else(Foraging == TRUE, 
+                      'Foraging',
+                         if_else(Foraging == FALSE, 
+                                'Not Foraging', 'Other'))) |>
+mutate(Running = if_else(Running == TRUE, 
+                      'Running',
+                         if_else(Running == FALSE, 
+                                'Not Running', 'Other'))) |>
+  st_as_sf(coords = c('X', 'Y'), crs = 4326) 
+
+  ggplot() + 
+    geom_sf(data = x_sf, aes(colour = squirrel_data$Primary.Fur.Color), size = 1.5, shape = 1, alpha = .7) + 
+facet_grid(~Shift) + 
+scale_colour_manual(values = c('black', 'brown','grey', 'white')) + 
+theme_minimal()  +
+labs(title = 'Squirrel Sighting Locations by Colour')
+```
+
 
 
 ```{r}
@@ -206,7 +227,7 @@ behavior_data <- squirrel_data |>
   summarize(Count = n(), .groups = "drop")  
 
 ggplot(behavior_data,
-       aes(axis1 = Shift, axis2 = Age, y = Count, fill = Behavior)) +
+       aes(axis1 = Age, axis2 = Shift, y = Count, fill = Behavior)) +
   geom_alluvium(aes(fill = Behavior)) +
   geom_stratum() +
   geom_text(stat = "stratum", aes(label = after_stat(stratum))) +

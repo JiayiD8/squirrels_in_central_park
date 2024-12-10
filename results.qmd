@@ -144,7 +144,7 @@ ggplot(behavior_data, aes(x = Behavior, y = Count, fill = Age)) +
     y = "Count of Squirrels",
     fill = "Age Group"
   ) +
-  facet_wrap(~Shift) +  # Add faceting by Shift
+  facet_wrap(~Shift) +
   theme_minimal() +
   scale_fill_brewer(palette = "Blues", direction = -1)
 
@@ -152,7 +152,6 @@ ggplot(behavior_data, aes(x = Behavior, y = Count, fill = Age)) +
 
 ```{r}
 # library(plotly)
-# # Prepare the data for sunburst
 # behavior_data <- squirrel_data |>
 #   select(Shift, Running, Chasing, Climbing, Eating, Foraging) |>
 #   pivot_longer(
@@ -163,17 +162,15 @@ ggplot(behavior_data, aes(x = Behavior, y = Count, fill = Age)) +
 #   filter(Observed == "true") |>
 #   group_by(Shift, Behavior) |>
 #   summarize(Count = n(), .groups = "drop") |>
-#   mutate(Proportion = Count / sum(Count))  # Calculate proportion for each Shift
-# 
-# # Prepare data for plotly sunburst
+#   mutate(Proportion = Count / sum(Count))  
+#
 # sunburst_data <- behavior_data |>
 #   mutate(
-#     ids = paste(Shift, Behavior, sep = "-"),  # Unique ID for each slice
+#     ids = paste(Shift, Behavior, sep = "-"),  # unique ID for each slice
 #     labels = Behavior,
-#     parents = Shift  # Parent category for each behavior
+#     parents = Shift  # parent category for each behavior
 #   )
-# 
-# # Create sunburst chart
+#
 # plot_ly(
 #   sunburst_data,
 #   labels = ~labels,
@@ -187,7 +184,7 @@ ggplot(behavior_data, aes(x = Behavior, y = Count, fill = Age)) +
 #       text = "Proportion of Behaviors by Shift",
 #       font = list(size = 20)
 #     ),
-#     colorway = RColorBrewer::brewer.pal(8, "Set2")  # Use valid 'colorway'
+#     colorway = RColorBrewer::brewer.pal(8, "Set2")  
 #   )
 
 ```
@@ -205,14 +202,13 @@ behavior_data <- squirrel_data |>
   group_by(Shift, Age, Behavior) |>
   summarize(Count = n(), .groups = "drop")  
 
-# Create the parallel sets plot
 ggplot(behavior_data,
        aes(axis1 = Shift, axis2 = Age, y = Count, fill = Behavior)) +
   geom_alluvium(aes(fill = Behavior)) +
   geom_stratum() +
   geom_text(stat = "stratum", aes(label = after_stat(stratum))) +
   labs(
-    title = "Parallel Sets Plot: Transition of Behaviors Across Shift and Age",
+    title = "Transition of Behaviors Across Shift and Age",
     x = "Categories",
     y = "Count of Observed Behaviors"
   ) +
@@ -237,14 +233,13 @@ interaction_data <- squirrel_data |>
   group_by(Behavior, Interaction) |>
   summarize(Count = n(), .groups = "drop")
 
-# Create the alluvial diagram
 ggplot(interaction_data,
        aes(axis1 = Behavior, axis2 = Interaction, y = Count, fill = Behavior)) +
   geom_alluvium() +
   geom_stratum() +
   geom_text(stat = "stratum", aes(label = after_stat(stratum))) +
   labs(
-    title = "Alluvial Diagram: Behaviors and Human Interactions",
+    title = "Behaviors and Human Interactions",
     x = "Categories",
     y = "Count of Observed Behaviors",
     fill = "Behavior"

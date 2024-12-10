@@ -9,6 +9,9 @@ library(ggridges)
 library(lubridate)
 
 squirrel_data <- read.csv("./2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv")
+squirrel_data <- squirrel_data |>
+  mutate(across(everything(), ~ na_if(as.character(.), ""))) |>
+  drop_na(Age, Location, Primary.Fur.Color)
 ```
 
 ```{r}
@@ -266,7 +269,7 @@ bubble_data <- squirrel_data |>
   group_by(X, Y, Behavior, Interaction) |>
   summarize(Count = n(), .groups = "drop")
 
-ggplot(bubble_data, aes(x = X, y = Y, size = Count, color = Behavior)) +
+ggplot(bubble_data, aes(x = X, y = Y, size = Count, color = Behavior), shape = 1) +
   geom_point(alpha = 0.7) +
   facet_wrap(~Interaction) +
   labs(

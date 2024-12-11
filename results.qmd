@@ -16,94 +16,62 @@ squirrel_data <- squirrel_data |>
 ```
 
 ```{r}
-# hectare_grid <- expand.grid(
-#   north_south = 1:42,    # Numerical axis (1-42)
-#   east_west = LETTERS[1:9]  # Roman letters (A-I)
-# )
-# 
-# hectare_grid <- hectare_grid |>
-#   mutate(
-#     Hectare = paste0(east_west, north_south),  
-#     lon = north_south,                        #
-#     lat = match(east_west, LETTERS[1:9])     
-#   )
-# 
-# squirrel_locations <- squirrel_data |>
-#   filter(!is.na(Hectare)) |>  # Ensure we only use rows with Hectare information
-#   mutate(
-#     lon = as.numeric(substr(Hectare, 2, nchar(Hectare))),  
-#     lat = match(substr(Hectare, 1, 1), LETTERS[1:9])      
-#   )
-# 
-# ggplot() +
-#   geom_tile(
-#     data = hectare_grid,
-#     aes(x = lon, y = lat, fill = "Grid"),
-#     color = "black",
-#     alpha = 0.1
-#   ) +
-#   # Add squirrel sightings as points
-#   geom_point(
-#     data = squirrel_locations,
-#     aes(x = lon, y = lat, color = Primary.Fur.Color),
-#     size = 2,
-#     alpha = 0.7
-#   ) +
-#   scale_color_manual(values = c("gray" = "gray", "black" = "black", "cinnamon" = "brown")) +
-#   labs(
-#     title = "Squirrel Sightings by Hectare",
-#     x = "Simulated Longitude",
-#     y = "Simulated Latitude",
-#     color = "Primary Fur Color"
-#   ) +
-#   theme_minimal() +
-#   theme(legend.position = "bottom")
-```
-
-
-
-```{r fig.width=10, fig.height=8}
 library(sf)
-x_sf <- squirrel_data |>
-mutate(Foraging = if_else(Foraging == TRUE, 
-                      'Foraging',
-                         if_else(Foraging == FALSE, 
-                                'Not Foraging', 'Other'))) |>
-mutate(Running = if_else(Running == TRUE, 
-                      'Running',
-                         if_else(Running == FALSE, 
-                                'Not Running', 'Other'))) |>
+coord_sf_obj <- squirrel_data |>
   st_as_sf(coords = c('X', 'Y'), crs = 4326) 
-
-  ggplot() + 
-    geom_sf(data = x_sf, aes(colour = squirrel_data$Primary.Fur.Color), size = 1.5, shape = 1, alpha = .7) + 
-scale_colour_manual(values = c('black', 'brown','grey', 'white')) + 
-theme_minimal()  +
-labs(title = 'Squirrel Sighting Locations by Colour')
+ggplot() + 
+    geom_sf(data = coord_sf_obj, aes(colour = squirrel_data$Primary.Fur.Color), 
+            size = 1.5, shape = 1, alpha = .7) + 
+    scale_colour_manual(values = c('black', 'brown','grey')) + 
+    theme_minimal()  +
+    labs(title = 'Squirrel Sighting Locations by Colour')
 ```
+
 ```{r}
 library(sf)
-x_sf <- squirrel_data |>
-mutate(Foraging = if_else(Foraging == TRUE, 
-                      'Foraging',
-                         if_else(Foraging == FALSE, 
-                                'Not Foraging', 'Other'))) |>
-mutate(Running = if_else(Running == TRUE, 
-                      'Running',
-                         if_else(Running == FALSE, 
-                                'Not Running', 'Other'))) |>
-  st_as_sf(coords = c('X', 'Y'), crs = 4326) 
+library(ggplot2)
 
-  ggplot() + 
-    geom_sf(data = x_sf, aes(colour = squirrel_data$Primary.Fur.Color), size = 1.5, shape = 1, alpha = .7) + 
-facet_grid(~Shift) + 
-scale_colour_manual(values = c('black', 'brown','grey', 'white')) + 
-theme_minimal()  +
-labs(title = 'Squirrel Sighting Locations by Colour')
+# Convert to sf object first
+coord_sf_obj <- squirrel_data |> 
+  st_as_sf(coords = c('X', 'Y'), crs = 4326)
+
+# Extract coordinates for density calculation
+coords <- st_coordinates(coord_sf_obj)
+
+# Create the plot
+ggplot() +
+  # Add filled contours with transparency
+  stat_density_2d(data = as.data.frame(coords),
+                 aes(X, Y, color = after_stat(level)),
+                 geom = "density_2d") +
+  theme_minimal() +
+  labs(title = 'Squirrel Density Contours by Location',
+       x = 'Longitude',
+       y = 'Latitude') +
+  # Adjust aspect ratio for better geographic representation
+  coord_fixed()
 ```
 
+```{r}
+library(sf)
+coord_sf_obj <- squirrel_data |>
+  st_as_sf(coords = c('X', 'Y'), crs = 4326) 
 
-
+ggplot() + 
+    # Base layer with squirrel points
+    geom_sf(data = coord_sf_obj, aes(colour = squirrel_data$Primary.Fur.Color), 
+            size = 1.5, shape = 1, alpha = .7) +
+    # Add density contours
+    stat_density_2d(data = squirrel_data,
+                   aes(x = X, y = Y),
+                   color = "navy",
+                   alpha = 0.5,
+                   linewidth = 0.5) +
+    scale_colour_manual(values = c('black', 'brown','grey')) + 
+    theme_minimal() +
+    labs(title = 'Squirrel Sighting Locations by Colour',
+         caption = 'Contour lines show density of sightings')
+```
 ```{r}
 # Convert the Date column to proper date format
 squirrel_data <- squirrel_data %>%

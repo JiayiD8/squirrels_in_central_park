@@ -11,6 +11,7 @@ library(sf)
 library(ggalluvial)
 library(viridis)
 library(scico)
+library(forcats)
 
 squirrel_data <- read.csv("./2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv")
 squirrel_data <- squirrel_data |>
@@ -65,6 +66,20 @@ squirrel_data <- squirrel_data |>
 ```
 
 
+```{r}
+ggplot(squirrel_data, aes(x = fct_infreq(Primary.Fur.Color), fill = Primary.Fur.Color)) +
+  geom_bar() +
+  labs(
+    title = "Counts by Primary Fur Color",
+    x = "Primary Fur Color",
+    y = "Count of Squirrels"
+  ) +
+  theme(legend.position = "none") +
+  theme_minimal() +
+  scale_fill_manual(values = c('black', '#D2691E', 'grey'), guide = FALSE) 
+```
+
+
 ```{r fig.width=10, fig.height=8}
 coord_sf_obj <- squirrel_data |>
   st_as_sf(coords = c('X', 'Y'), crs = 4326) # crs=4326 refers to the "Coordinate Reference System" with EPSG code 4326. This ensures the coordinates are plot correctly.
@@ -72,21 +87,74 @@ coord_sf_obj <- squirrel_data |>
 ggplot() + 
     geom_sf(data = coord_sf_obj, aes(colour = squirrel_data$Primary.Fur.Color), 
             size = 1.5, shape = 1, alpha = .7) + 
-    scale_colour_manual(values = c('black', 'brown','grey')) + 
+    scale_colour_manual(values = c('black', '#D2691E', 'grey')) + 
     theme_minimal()  +
-    labs(title = 'Squirrel Sighting Locations by Colour')
+    labs(title = 'Squirrel Sighting Locations by Color')
 ```
 
 ```{r}
-# Convert the Date column to proper date format
-squirrel_data <- squirrel_data %>%
+coord_sf <- squirrel_data |>
+  st_as_sf(coords = c('X', 'Y'), crs = 4326) |>
+  pivot_longer(
+    cols = c(Running, Chasing, Climbing, Eating, Foraging), 
+    names_to = "Behavior",
+    values_to = "Observed"
+  ) |>
+  filter(Observed == "true") 
+  # No group_by needed if not summarizing
+
+ggplot() + 
+  geom_sf(data = coord_sf, aes(color = Primary.Fur.Color), 
+          size = 1.5, shape = 1, alpha = 0.7) + 
+  scale_color_manual(values = c('black', '#D2691E', 'grey')) + 
+  facet_wrap(~ Behavior) +
+  theme_minimal() +
+  labs(title = 'Squirrel Sighting Locations by Color')
+
+```
+
+
+```{r}
+library(scales)
+
+# assuming squirrel_data has columns like Primary.Fur.Color, Running, Chasing, Climbing, Eating, Foraging 
+proportion_data <- squirrel_data |>
+  pivot_longer(
+    cols = c(Running, Chasing, Climbing, Eating, Foraging), 
+    names_to = "Behavior",
+    values_to = "Observed"
+  ) |>
+  filter(Observed == "true") |>
+  # Count number of squirrels per Behavior & Primary.Fur.Color
+  group_by(Primary.Fur.Color, Behavior) |>
+  summarize(Count = n(), .groups = "drop")
+
+# stacked proportion bar chart
+ggplot(proportion_data, aes(x = Primary.Fur.Color, y = Count, fill = Behavior)) +
+  geom_col(position = "fill", color = "black") +
+  scale_y_continuous(labels = percent_format()) +
+  labs(
+    title = "Proportion of Behaviors by Primary Fur Color",
+    x = "Primary Fur Color",
+    y = "Proportion of Squirrels",
+    fill = "Behavior"
+  ) +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set3")
+
+```
+
+
+```{r}
+# convert the Date column to proper date format
+squirrel_data <- squirrel_data |>
   mutate(
     Date = as.Date(Date, format = "%m%d%Y"),
-    # Make Shift a factor with PM first so AM appears on top
+    # make shift a factor with PM first so AM appears on top
     Shift = factor(Shift, levels = c("PM", "AM"))
   )
 
-# Create the ridgeline plot
+# ridgeline plot
 ggplot(squirrel_data, aes(x = Date, y = Shift, fill = Shift)) +
   geom_density_ridges(
     alpha = 0.6,
@@ -118,8 +186,9 @@ ggplot(squirrel_data, aes(x = Date, y = Shift, fill = Shift)) +
 ```
 
 
+
 ```{r}
-behavior_data <- squirrel_data |>
+behavior <- squirrel_data |>
   select(Age, Running, Chasing, Climbing, Eating, Foraging, Shift) |>
   pivot_longer(
     cols = c(Running, Chasing, Climbing, Eating, Foraging),
@@ -127,62 +196,26 @@ behavior_data <- squirrel_data |>
     values_to = "Observed"
   ) |>
   filter(Observed == "true") |>
+  # Summarize counts per Age, Behavior, and Shift
   group_by(Age, Behavior, Shift) |>
-  summarize(Count = n(), .groups = "drop")
-```
+  summarize(Count = n(), .groups = "drop") |>
+  # Now group by Age and Shift to get the total count for that subset
+  group_by(Age, Shift) |>
+  mutate(Proportion = Count / sum(Count)) |>
+  ungroup()
 
-
-```{r}
-ggplot(behavior_data, aes(x = Behavior, y = Count, fill = Age)) +
+ggplot(behavior, aes(x = Behavior, y = Proportion, fill = Age)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(
-    title = "Comparison of Behaviors by Age and Shift",
+    title = "Comparison of Behaviors by Age and Shift (Proportion)",
     x = "Behavior",
-    y = "Count of Squirrels",
+    y = "Proportion of Squirrels",
     fill = "Age Group"
   ) +
   facet_wrap(~Shift) +
   theme_minimal() +
+  scale_y_continuous(labels = percent_format()) +
   scale_fill_brewer(palette = "Blues", direction = -1)
-
-```
-
-```{r}
-# library(plotly)
-# behavior_data <- squirrel_data |>
-#   select(Shift, Running, Chasing, Climbing, Eating, Foraging) |>
-#   pivot_longer(
-#     cols = c(Running, Chasing, Climbing, Eating, Foraging),
-#     names_to = "Behavior",
-#     values_to = "Observed"
-#   ) |>
-#   filter(Observed == "true") |>
-#   group_by(Shift, Behavior) |>
-#   summarize(Count = n(), .groups = "drop") |>
-#   mutate(Proportion = Count / sum(Count))  
-#
-# sunburst_data <- behavior_data |>
-#   mutate(
-#     ids = paste(Shift, Behavior, sep = "-"),  # unique ID for each slice
-#     labels = Behavior,
-#     parents = Shift  # parent category for each behavior
-#   )
-#
-# plot_ly(
-#   sunburst_data,
-#   labels = ~labels,
-#   parents = ~parents,
-#   values = ~Proportion,
-#   type = 'sunburst',
-#   branchvalues = 'total'
-# ) %>%
-#   layout(
-#     title = list(
-#       text = "Proportion of Behaviors by Shift",
-#       font = list(size = 20)
-#     ),
-#     colorway = RColorBrewer::brewer.pal(8, "Set2")  
-#   )
 
 ```
 
@@ -196,22 +229,34 @@ behavior_data <- squirrel_data |>
   ) |>
   filter(Observed == "true") |>
   group_by(Shift, Age, Behavior) |>
-  summarize(Count = n(), .groups = "drop")  
+  summarize(Count = n(), .groups = "drop")
+```
 
-ggplot(behavior_data,
-       aes(axis1 = Age, axis2 = Shift, y = Count, fill = Behavior)) +
-  geom_alluvium(aes(fill = Behavior)) +
+```{r}
+foraging_alluvial_data <- squirrel_data %>%
+  filter(Foraging == "true") %>%
+  group_by(Shift, Location) %>%
+  summarize(Count = n(), .groups = "drop") %>%
+  mutate(
+    Shift = factor(Shift),
+    Location = factor(Location)
+  )
+
+ggplot(foraging_alluvial_data,
+       aes(axis1 = Shift, axis2 = Location, y = Count, fill = Location)) +
+  geom_alluvium(color = "black") +
   geom_stratum() +
-  geom_text(stat = "stratum", aes(label = after_stat(stratum))) +
+  geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 2) +
+  scale_x_discrete(expand = c(0.1, 0.1)) +
   labs(
-    title = "Transition of Behaviors Across Shift and Age",
-    x = "Categories",
-    y = "Count of Observed Behaviors"
+    title = "Foraging Patterns Across Shift and Location",
+    x = "", 
+    y = "Count"
   ) +
-  theme_minimal() +
-  scale_fill_brewer(palette = "Set3")
+  theme_minimal()
 
 ```
+
 
 ```{r}
 behavior_location <- squirrel_data |>
@@ -237,40 +282,6 @@ vcd::mosaic(
   legend = FALSE,
   main = "Mosaic of Behaviors by Location"
 )
-```
-
-
-```{r}
-interaction_data <- squirrel_data |>
-  select(Running, Climbing, Eating, Foraging, Approaches, Runs.from) |>
-  pivot_longer(
-    cols = c(Running, Climbing, Eating, Foraging),
-    names_to = "Behavior",
-    values_to = "Observed_Behavior"
-  ) |>
-  pivot_longer(
-    cols = c(Approaches, Runs.from),
-    names_to = "Interaction",
-    values_to = "Observed_Interaction"
-  ) |>
-  filter(Observed_Behavior == "true" & Observed_Interaction == "true") |>
-  group_by(Behavior, Interaction) |>
-  summarize(Count = n(), .groups = "drop")
-
-ggplot(interaction_data,
-       aes(axis1 = Behavior, axis2 = Interaction, y = Count, fill = Behavior)) +
-  geom_alluvium() +
-  geom_stratum() +
-  geom_text(stat = "stratum", aes(label = after_stat(stratum))) +
-  labs(
-    title = "Behaviors and Human Interactions",
-    x = "Categories",
-    y = "Count of Observed Behaviors",
-    fill = "Behavior"
-  ) +
-  theme_minimal(base_size = 14) +
-  scale_fill_viridis_d()
-
 ```
 
 ```{r fig.width= 10}

@@ -73,7 +73,7 @@ squirrel_data <- squirrel_data |>
 ### What is the total number of sightings of black, cinnamon, and gray morphs of Eastern Gray squirrels within Central Park?
 
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 ggplot(squirrel_data, aes(x = fct_infreq(Primary.Fur.Color), fill = Primary.Fur.Color)) +
   geom_bar() +
   labs(
@@ -101,7 +101,7 @@ ggplot() +
 
 ### How do sighted behaviors differ among black, cinnamon, and gray morphs of Eastern Gray squirrels in Central Park?
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(scales)
 
 # assuming squirrel_data has columns like Primary.Fur.Color, Running, Chasing, Climbing, Eating, Foraging 

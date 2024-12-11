@@ -12,3 +12,21 @@
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script src="https://d3js.org/d3-hexbin.v0.2.min.js"></script>
 <script src="scripts/myscript.js"></script>
+
+```{r}
+# Get the data for interactive graph
+# library(tidyverse)
+# library(jsonlite)
+# 
+# squirrel_data <- read.csv("./2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv")
+# 
+# squirrel_coords <- squirrel_data |>
+#   select(X, Y, Primary.Fur.Color) |>
+#   rename(longitude = X,
+#          latitude = Y,
+#          furColor = Primary.Fur.Color) |>
+#   filter(!is.na(furColor))
+# 
+# # Export the data as JSON
+# write_json(squirrel_coords, "squirrel_coords.json")
+```

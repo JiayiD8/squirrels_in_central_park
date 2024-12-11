@@ -7,6 +7,10 @@ library(tidyr)
 library(tidyverse)
 library(ggridges)
 library(lubridate)
+library(sf)
+library(ggalluvial)
+library(viridis)
+library(scico)
 
 squirrel_data <- read.csv("./2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv")
 squirrel_data <- squirrel_data |>
@@ -61,9 +65,7 @@ squirrel_data <- squirrel_data |>
 ```
 
 
-
 ```{r fig.width=10, fig.height=8}
-library(sf)
 coord_sf_obj <- squirrel_data |>
   st_as_sf(coords = c('X', 'Y'), crs = 4326) # crs=4326 refers to the "Coordinate Reference System" with EPSG code 4326. This ensures the coordinates are plot correctly.
 
@@ -185,7 +187,6 @@ ggplot(behavior_data, aes(x = Behavior, y = Count, fill = Age)) +
 ```
 
 ```{r}
-library(ggalluvial)
 behavior_data <- squirrel_data |>
   select(Age, Shift, Running, Chasing, Climbing, Eating, Foraging) |>
   pivot_longer(
@@ -213,8 +214,6 @@ ggplot(behavior_data,
 ```
 
 ```{r}
-library(viridis)
-library(scico)
 behavior_location <- squirrel_data |>
   select(Running, Chasing, Climbing, Eating, Foraging, Location) |>
   pivot_longer(

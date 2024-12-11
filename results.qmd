@@ -139,25 +139,28 @@ ggplot(proportion_data, aes(x = Primary.Fur.Color, y = Count, fill = Behavior)) 
 
 
 ```{r}
-# Convert to sf object first
-coord_sf_obj <- squirrel_data |> 
-  st_as_sf(coords = c('X', 'Y'), crs = 4326)
+# Extract coordinates from the point data
+squirrel_coords <- squirrel_data %>%
+  mutate(
+    coords = str_extract(Lat.Long, "\\(.*\\)"),
+    coords = str_remove_all(coords, "[\\(\\)]"),
+    longitude = as.numeric(word(coords, 1)),
+    latitude = as.numeric(word(coords, 2))
+  )
 
-# Extract coordinates for density calculation
-coords <- st_coordinates(coord_sf_obj)
-
-# Create the plot
-ggplot() +
-  # Add filled contours with transparency
-  stat_density_2d(data = as.data.frame(coords),
-                 aes(X, Y, color = after_stat(level)),
-                 geom = "density_2d") +
+# Create hexbin plot
+ggplot(squirrel_coords, aes(x = longitude, y = latitude)) +
+  geom_hex(bins = 40) +  
+  scale_fill_viridis_c(option = "plasma", direction = 1) +  
   theme_minimal() +
-  labs(title = 'Squirrel Density Contours by Location',
-       x = 'Longitude',
-       y = 'Latitude') +
-  # Adjust aspect ratio for better geographic representation
-  coord_fixed()
+  labs(
+    title = "Squirrel Location Density",
+    subtitle = "Hexagon binning visualization",
+    x = "Longitude",
+    y = "Latitude",
+    fill = "Count"
+  ) +
+  coord_fixed()  
 ```
 
 ### How does the frequency of Eastern Gray squirrel sightings vary across different times of day, different dates, and weather conditions in Central Park?
@@ -391,3 +394,85 @@ ggplot(sound_interaction,
 #   labs(title = 'Squirrel Sighting Locations by Color')
 
 ```
+
+```{r}
+weather_data <- read.csv("/Users/sazle/Downloads/central_park_hourly.csv")
+head(weather_data)
+weather <- weather_data |>
+  select(datetime, temp, conditions)
+
+weather
+```
+```{r}
+interaction_distribution <- squirrel_data |>
+  select(X, Y, Eating, Foraging, Running, Chasing, Climbing, Approaches, Indifferent, Runs.from) |>
+  pivot_longer(
+    cols = c(Eating, Foraging, Running, Chasing, Climbing),
+    names_to = "Behavior",
+    values_to = "Observed_Behavior"
+  ) |>
+  pivot_longer(
+    cols = c(Approaches, Indifferent, Runs.from),
+    names_to = "Interaction",
+    values_to = "Observed_Interaction"
+  ) |>
+  filter(Observed_Behavior == "true" & Observed_Interaction == "true") |>
+  group_by(X, Y, Behavior, Interaction) |>
+  summarize(Count = n(), .groups = "drop") |>
+  st_as_sf(coords = c("X", "Y"), crs = 4326)
+
+ggplot() +
+  geom_sf(data = interaction_distribution, aes(color = Behavior), size = 3, shape = 1, alpha = 1) +
+  facet_wrap(~Behavior)
+  labs(
+    title = "Frequency of Human Interactions by Behavior and Location",
+    size = "Interaction Count",
+    color = "Behavior"
+  ) +
+  theme_minimal(base_size = 14) +
+  scale_color_brewer(palette = "Set1")
+```
+```{r}
+library(dplyr)
+library(sf)
+library(ggplot2)
+library(viridis)
+
+# Convert squirrel_data to an sf object
+squirrel_sf <- squirrel_data %>%
+  st_as_sf(coords = c("X", "Y"), crs = 4326)  # Assuming WGS84 coords
+
+# Determine bounding box and create hexagonal grid
+bbox <- st_bbox(squirrel_sf)
+# Adjust the 'cellsize' parameter as needed
+# 'square = FALSE' creates hexagons
+hex_grid <- st_make_grid(
+  squirrel_sf,
+  cellsize = c(0.001, 0.001), # Adjust to achieve desired hex size
+  what = "polygons",
+  square = FALSE
+) %>%
+  st_sf()
+
+# Spatial join: find how many squirrels are in each hex
+counts <- st_intersects(hex_grid, squirrel_sf)
+hex_grid$Count <- lengths(counts)
+
+# Plot the hex grid colored by frequency of squirrel sightings
+ggplot(hex_grid) +
+  geom_sf(aes(fill = Count), color = NA) +
+  scale_fill_viridis(
+    option = "magma",
+    direction = -1,
+    name = "Count"
+  ) +
+  labs(
+    title = "Hex-Binned Frequency of Squirrel Sightings",
+    x = "X Coordinate",
+    y = "Y Coordinate"
+  ) +
+  theme_minimal()
+
+
+```
+

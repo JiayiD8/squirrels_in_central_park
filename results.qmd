@@ -85,6 +85,8 @@ ggplot(squirrel_data, aes(x = fct_infreq(Primary.Fur.Color), fill = Primary.Fur.
   theme_minimal() +
   scale_fill_manual(values = c('black', '#D2691E', 'grey'), guide = FALSE) 
 ```
+The bar plot shows that Eastern Gray squirrels with gray fur are the most commonly sighted in Central Park, with over 2,000 observations. Cinnamon-colored squirrels are less common, with several hundred sightings, while black-colored squirrels are the rarest, with fewer than 500 sightings. This is reasonable since Eastern Gray squirrels are the most prevalent squirrels in the central park. 
+
 ### What is the spatial distribution of black, cinnamon, and gray morphs of Eastern Gray squirrels across Central Park?
 
 ```{r fig.width=10, fig.height=8}
@@ -92,18 +94,21 @@ coord_sf_obj <- squirrel_data |>
   st_as_sf(coords = c('X', 'Y'), crs = 4326) # crs=4326 refers to the "Coordinate Reference System" with EPSG code 4326. This ensures the coordinates are plot correctly.
 
 ggplot() + 
-    geom_sf(data = coord_sf_obj, aes(colour = squirrel_data$Primary.Fur.Color), 
+    geom_sf(data = coord_sf_obj, aes(color = squirrel_data$Primary.Fur.Color), 
             size = 1.5, shape = 1, alpha = .7) + 
     scale_colour_manual(values = c('black', '#D2691E', 'grey')) + 
     theme_minimal()  +
-    labs(title = 'Squirrel Sighting Locations by Color')
+    labs(title = 'Squirrel Sighting Locations by Color', 
+         color = 'Primary Fur Color')
 ```
+
+The map shows that Gray squirrels seem to donimate the central park. They are widespread and seen almost everywhere on the map. Cinnamon-colored squirrels are less common and appear more scattered on the lower side of the park. Black squirrels are the rarest, with only a few sightings concentrated in specific areas. Such data might because of the ways of data collection that there might only be several black squirrels and the data are clustered becuase different people sighted it around it's drey at different time.  
 
 ### How do sighted behaviors differ among black, cinnamon, and gray morphs of Eastern Gray squirrels in Central Park?
 
-```{r, message=FALSE, warning=FALSE}
-library(scales)
+As the number of squirrels with different colors are largely imbalanced, we plot the stacked proportion bar plot to explore if sighted behaviors differ among black, cinnamon, and gray squirrels. 
 
+```{r, message=FALSE, warning=FALSE}
 # assuming squirrel_data has columns like Primary.Fur.Color, Running, Chasing, Climbing, Eating, Foraging 
 proportion_data <- squirrel_data |>
   pivot_longer(
@@ -116,10 +121,11 @@ proportion_data <- squirrel_data |>
   group_by(Primary.Fur.Color, Behavior) |>
   summarize(Count = n(), .groups = "drop")
 
-# stacked proportion bar chart
+library(paletteer)
+
 ggplot(proportion_data, aes(x = Primary.Fur.Color, y = Count, fill = Behavior)) +
   geom_col(position = "fill", color = "black") +
-  scale_y_continuous(labels = percent_format()) +
+  scale_y_continuous(labels = scales::percent_format()) +
   labs(
     title = "Proportion of Behaviors by Primary Fur Color",
     x = "Primary Fur Color",
@@ -127,20 +133,21 @@ ggplot(proportion_data, aes(x = Primary.Fur.Color, y = Count, fill = Behavior)) 
     fill = "Behavior"
   ) +
   theme_minimal() +
-  scale_fill_brewer(palette = "Set3")
-
+  scale_fill_paletteer_d("ggthemes::Miller_Stone", direction = -1)
 ```
+The plot shows that in Central Park appears uniform across fur colors, with foraging and running being the most frequent activities while squirrels are sighted. 
+
 
 ## What are the overall Eastern Gray squirrels’ spatiotemporal distributions and activity patterns in Central Park?
 
-
+Since, we see no behavioral difference between across squirrels with different fur colors, we then explore the overall distribution of entire squirrel species. 
 
 ### What is the spatial concentration of Eastern Gray squirrel sightings within Central Park?
 
 
 ```{r}
 # Extract coordinates from the point data
-squirrel_coords <- squirrel_data %>%
+squirrel_coords <- squirrel_data |>
   mutate(
     coords = str_extract(Lat.Long, "\\(.*\\)"),
     coords = str_remove_all(coords, "[\\(\\)]"),
@@ -148,10 +155,17 @@ squirrel_coords <- squirrel_data %>%
     latitude = as.numeric(word(coords, 2))
   )
 
-# Create hexbin plot
 ggplot(squirrel_coords, aes(x = longitude, y = latitude)) +
-  geom_hex(bins = 40) +  
-  scale_fill_viridis_c(option = "plasma", direction = 1) +  
+  geom_hex(bins = 40) +
+  scale_fill_distiller(palette = "Blues", direction = 1) +
+    scale_x_continuous(
+    labels = function(x) paste0(abs(x), "°W"),  
+    breaks = seq(-74, -73.95, by = 0.01)        
+  ) +
+  scale_y_continuous(
+    labels = function(y) paste0(y, "°N"),      
+    breaks = seq(40.76, 40.8, by = 0.005)       
+  ) +
   theme_minimal() +
   labs(
     title = "Squirrel Location Density",
@@ -160,8 +174,11 @@ ggplot(squirrel_coords, aes(x = longitude, y = latitude)) +
     y = "Latitude",
     fill = "Count"
   ) +
-  coord_fixed()  
+  coord_fixed()
+
+
 ```
+From this plot, we can see that squirrels are spread throughout the central park, but they tend to cluster more heavily in certain areas. The darker-colored hexagons show spots where more sightings of squirrels are located, suggesting these places might be particularly attractive to them—maybe because of food sources, water, shelter, or other favorable conditions. To be specific, northern side of the Jacqueline Kennedy Onassis Reservoir, right next to the lake, and the lower right corner, are some of the "hotspot" for squirrels. 
 
 ### How does the frequency of Eastern Gray squirrel sightings vary across different times of day, different dates, and weather conditions in Central Park?
 
@@ -204,11 +221,14 @@ ggplot(squirrel_data, aes(x = Date, y = Shift, fill = Shift)) +
     panel.grid.minor = element_blank()
   )
 ```
+This plot shows the distribution of squirrel sightings across days in October, divided into morning (AM) and afternoon (PM) shifts. The overall sighting density are similar for morning and afternoon across October, except several days like Oct 07, 10, 13, and 14. This could becuase different weather condition across the day. For example, 
+
 
 ### How are Eastern Gray squirrel’s activity patterns affected by age and environmental features?
 
 
 ```{r}
+library(scales)
 behavior <- squirrel_data |>
   select(Age, Running, Chasing, Climbing, Eating, Foraging, Shift) |>
   pivot_longer(
@@ -235,31 +255,18 @@ ggplot(behavior, aes(x = Behavior, y = Proportion, fill = Age)) +
   ) +
   facet_wrap(~Shift) +
   theme_minimal() +
-  scale_y_continuous(labels = percent_format()) +
-  scale_fill_brewer(palette = "Blues", direction = -1)
+  scale_y_continuous(labels = label_percent())+
+  scale_fill_manual(
+    values = c("Adult" = "#502419", "Juvenile" = "#7ea172")
+  ) 
 
 ```
 
-
-
 ```{r}
-behavior_data <- squirrel_data |>
-  select(Age, Shift, Running, Chasing, Climbing, Eating, Foraging) |>
-  pivot_longer(
-    cols = c(Running, Chasing, Climbing, Eating, Foraging),
-    names_to = "Behavior",
-    values_to = "Observed"
-  ) |>
-  filter(Observed == "true") |>
-  group_by(Shift, Age, Behavior) |>
-  summarize(Count = n(), .groups = "drop")
-```
-
-```{r}
-foraging_alluvial_data <- squirrel_data %>%
-  filter(Foraging == "true") %>%
-  group_by(Shift, Location) %>%
-  summarize(Count = n(), .groups = "drop") %>%
+foraging_alluvial_data <- squirrel_data |>
+  filter(Foraging == "true") |>
+  group_by(Shift, Location) |>
+  summarize(Count = n(), .groups = "drop") |>
   mutate(
     Shift = factor(Shift),
     Location = factor(Location)
@@ -295,12 +302,16 @@ behavior_location <- squirrel_data |>
 
 mosaic_table <- xtabs(Count ~ Location + Behavior, data = behavior_location)
 
+colors <- paletteer_d("ggthemes::Miller_Stone")
+highlighting_colors <- tail(colors, 5)
+
+# Apply the colors to the mosaic plot
 vcd::mosaic(
   ~ Behavior + Location,
   data = mosaic_table,
   direction = c("h", "v"),
   highlighting = "Behavior",
-  highlighting_fill = scico(5, palette = "lajolla"), # Using the La Jolla palette
+  highlighting_fill = highlighting_colors, # Using the last five colors
   shade = TRUE,
   legend = FALSE,
   main = "Mosaic of Behaviors by Location"
@@ -392,5 +403,15 @@ ggplot(sound_interaction,
 #   facet_wrap(~ Behavior) +
 #   theme_minimal() +
 #   labs(title = 'Squirrel Sighting Locations by Color')
-
+# 
+# behavior_data <- squirrel_data |>
+#   select(Age, Shift, Running, Chasing, Climbing, Eating, Foraging) |>
+#   pivot_longer(
+#     cols = c(Running, Chasing, Climbing, Eating, Foraging),
+#     names_to = "Behavior",
+#     values_to = "Observed"
+#   ) |>
+#   filter(Observed == "true") |>
+#   group_by(Shift, Age, Behavior) |>
+#   summarize(Count = n(), .groups = "drop")
 ```

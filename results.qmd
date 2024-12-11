@@ -395,84 +395,84 @@ ggplot(sound_interaction,
 
 ```
 
-```{r}
-weather_data <- read.csv("/Users/sazle/Downloads/central_park_hourly.csv")
-head(weather_data)
-weather <- weather_data |>
-  select(datetime, temp, conditions)
+<!-- ```{r} -->
+<!-- weather_data <- read.csv("/Users/sazle/Downloads/central_park_hourly.csv") -->
+<!-- head(weather_data) -->
+<!-- weather <- weather_data |> -->
+<!--   select(datetime, temp, conditions) -->
 
-weather
-```
-```{r}
-interaction_distribution <- squirrel_data |>
-  select(X, Y, Eating, Foraging, Running, Chasing, Climbing, Approaches, Indifferent, Runs.from) |>
-  pivot_longer(
-    cols = c(Eating, Foraging, Running, Chasing, Climbing),
-    names_to = "Behavior",
-    values_to = "Observed_Behavior"
-  ) |>
-  pivot_longer(
-    cols = c(Approaches, Indifferent, Runs.from),
-    names_to = "Interaction",
-    values_to = "Observed_Interaction"
-  ) |>
-  filter(Observed_Behavior == "true" & Observed_Interaction == "true") |>
-  group_by(X, Y, Behavior, Interaction) |>
-  summarize(Count = n(), .groups = "drop") |>
-  st_as_sf(coords = c("X", "Y"), crs = 4326)
+<!-- weather -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- interaction_distribution <- squirrel_data |> -->
+<!--   select(X, Y, Eating, Foraging, Running, Chasing, Climbing, Approaches, Indifferent, Runs.from) |> -->
+<!--   pivot_longer( -->
+<!--     cols = c(Eating, Foraging, Running, Chasing, Climbing), -->
+<!--     names_to = "Behavior", -->
+<!--     values_to = "Observed_Behavior" -->
+<!--   ) |> -->
+<!--   pivot_longer( -->
+<!--     cols = c(Approaches, Indifferent, Runs.from), -->
+<!--     names_to = "Interaction", -->
+<!--     values_to = "Observed_Interaction" -->
+<!--   ) |> -->
+<!--   filter(Observed_Behavior == "true" & Observed_Interaction == "true") |> -->
+<!--   group_by(X, Y, Behavior, Interaction) |> -->
+<!--   summarize(Count = n(), .groups = "drop") |> -->
+<!--   st_as_sf(coords = c("X", "Y"), crs = 4326) -->
 
-ggplot() +
-  geom_sf(data = interaction_distribution, aes(color = Behavior), size = 3, shape = 1, alpha = 1) +
-  facet_wrap(~Behavior)
-  labs(
-    title = "Frequency of Human Interactions by Behavior and Location",
-    size = "Interaction Count",
-    color = "Behavior"
-  ) +
-  theme_minimal(base_size = 14) +
-  scale_color_brewer(palette = "Set1")
-```
-```{r}
-library(dplyr)
-library(sf)
-library(ggplot2)
-library(viridis)
+<!-- ggplot() + -->
+<!--   geom_sf(data = interaction_distribution, aes(color = Behavior), size = 3, shape = 1, alpha = 1) + -->
+<!--   facet_wrap(~Behavior) -->
+<!--   labs( -->
+<!--     title = "Frequency of Human Interactions by Behavior and Location", -->
+<!--     size = "Interaction Count", -->
+<!--     color = "Behavior" -->
+<!--   ) + -->
+<!--   theme_minimal(base_size = 14) + -->
+<!--   scale_color_brewer(palette = "Set1") -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- library(dplyr) -->
+<!-- library(sf) -->
+<!-- library(ggplot2) -->
+<!-- library(viridis) -->
 
-# Convert squirrel_data to an sf object
-squirrel_sf <- squirrel_data %>%
-  st_as_sf(coords = c("X", "Y"), crs = 4326)  # Assuming WGS84 coords
+<!-- # Convert squirrel_data to an sf object -->
+<!-- squirrel_sf <- squirrel_data %>% -->
+<!--   st_as_sf(coords = c("X", "Y"), crs = 4326)  # Assuming WGS84 coords -->
 
-# Determine bounding box and create hexagonal grid
-bbox <- st_bbox(squirrel_sf)
-# Adjust the 'cellsize' parameter as needed
-# 'square = FALSE' creates hexagons
-hex_grid <- st_make_grid(
-  squirrel_sf,
-  cellsize = c(0.001, 0.001), # Adjust to achieve desired hex size
-  what = "polygons",
-  square = FALSE
-) %>%
-  st_sf()
+<!-- # Determine bounding box and create hexagonal grid -->
+<!-- bbox <- st_bbox(squirrel_sf) -->
+<!-- # Adjust the 'cellsize' parameter as needed -->
+<!-- # 'square = FALSE' creates hexagons -->
+<!-- hex_grid <- st_make_grid( -->
+<!--   squirrel_sf, -->
+<!--   cellsize = c(0.001, 0.001), # Adjust to achieve desired hex size -->
+<!--   what = "polygons", -->
+<!--   square = FALSE -->
+<!-- ) %>% -->
+<!--   st_sf() -->
 
-# Spatial join: find how many squirrels are in each hex
-counts <- st_intersects(hex_grid, squirrel_sf)
-hex_grid$Count <- lengths(counts)
+<!-- # Spatial join: find how many squirrels are in each hex -->
+<!-- counts <- st_intersects(hex_grid, squirrel_sf) -->
+<!-- hex_grid$Count <- lengths(counts) -->
 
-# Plot the hex grid colored by frequency of squirrel sightings
-ggplot(hex_grid) +
-  geom_sf(aes(fill = Count), color = NA) +
-  scale_fill_viridis(
-    option = "magma",
-    direction = -1,
-    name = "Count"
-  ) +
-  labs(
-    title = "Hex-Binned Frequency of Squirrel Sightings",
-    x = "X Coordinate",
-    y = "Y Coordinate"
-  ) +
-  theme_minimal()
+<!-- # Plot the hex grid colored by frequency of squirrel sightings -->
+<!-- ggplot(hex_grid) + -->
+<!--   geom_sf(aes(fill = Count), color = NA) + -->
+<!--   scale_fill_viridis( -->
+<!--     option = "magma", -->
+<!--     direction = -1, -->
+<!--     name = "Count" -->
+<!--   ) + -->
+<!--   labs( -->
+<!--     title = "Hex-Binned Frequency of Squirrel Sightings", -->
+<!--     x = "X Coordinate", -->
+<!--     y = "Y Coordinate" -->
+<!--   ) + -->
+<!--   theme_minimal() -->
 
 
-```
+<!-- ``` -->
 

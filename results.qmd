@@ -1,26 +1,7 @@
 # Results
 
-```{r, message=FALSE, warning=FALSE}
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(tidyverse)
-library(ggridges)
-library(lubridate)
-library(sf)
-library(ggalluvial)
-library(viridis)
-library(scico)
-library(forcats)
 
-squirrel_data <- read.csv("./2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv")
-squirrel_data <- squirrel_data |>
-  mutate(across(everything(), ~ na_if(as.character(.), ""))) |>
-  drop_na(Age, Location, Primary.Fur.Color) |>
-  filter(Age != "?")
-```
-
-```{r}
+```{r include=FALSE}
 # hectare_grid <- expand.grid(
 #   north_south = 1:42,    # Numerical axis (1-42)
 #   east_west = LETTERS[1:9]  # Roman letters (A-I)
@@ -65,6 +46,32 @@ squirrel_data <- squirrel_data |>
 #   theme(legend.position = "bottom")
 ```
 
+## Exploration of squirrels of different Primary Fur Color 
+**General Questions**: How do black, cinnamon and standard gray morphs of Eastern Gray squirrels (Sciurus Carolinensis) differ in their spatial distributions and activity patterns in Central Park?
+
+
+```{r, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(tidyverse)
+library(ggridges)
+library(lubridate)
+library(sf)
+library(ggalluvial)
+library(viridis)
+library(scico)
+library(forcats)
+
+squirrel_data <- read.csv("./2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv")
+squirrel_data <- squirrel_data |>
+  mutate(across(everything(), ~ na_if(as.character(.), ""))) |>
+  drop_na(Age, Location, Primary.Fur.Color) |>
+  filter(Age != "?")
+```
+
+### What is the total number of sightings of black, cinnamon, and gray morphs of Eastern Gray squirrels within Central Park?
+
 
 ```{r}
 ggplot(squirrel_data, aes(x = fct_infreq(Primary.Fur.Color), fill = Primary.Fur.Color)) +
@@ -78,7 +85,7 @@ ggplot(squirrel_data, aes(x = fct_infreq(Primary.Fur.Color), fill = Primary.Fur.
   theme_minimal() +
   scale_fill_manual(values = c('black', '#D2691E', 'grey'), guide = FALSE) 
 ```
-
+### What is the spatial distribution of black, cinnamon, and gray morphs of Eastern Gray squirrels across Central Park?
 
 ```{r fig.width=10, fig.height=8}
 coord_sf_obj <- squirrel_data |>
@@ -92,6 +99,7 @@ ggplot() +
     labs(title = 'Squirrel Sighting Locations by Color')
 ```
 
+### How do sighted behaviors differ among black, cinnamon, and gray morphs of Eastern Gray squirrels in Central Park?
 
 ```{r}
 library(scales)
@@ -122,6 +130,14 @@ ggplot(proportion_data, aes(x = Primary.Fur.Color, y = Count, fill = Behavior)) 
   scale_fill_brewer(palette = "Set3")
 
 ```
+
+## What are the overall Eastern Gray squirrels’ spatiotemporal distributions and activity patterns in Central Park?
+
+
+
+### What is the spatial concentration of Eastern Gray squirrel sightings within Central Park?
+
+
 ```{r}
 # Convert to sf object first
 coord_sf_obj <- squirrel_data |> 
@@ -143,6 +159,8 @@ ggplot() +
   # Adjust aspect ratio for better geographic representation
   coord_fixed()
 ```
+
+### How does the frequency of Eastern Gray squirrel sightings vary across different times of day, different dates, and weather conditions in Central Park?
 
 ```{r}
 # convert the Date column to proper date format
@@ -184,6 +202,7 @@ ggplot(squirrel_data, aes(x = Date, y = Shift, fill = Shift)) +
   )
 ```
 
+### How are Eastern Gray squirrel’s activity patterns affected by age and environmental features?
 
 
 ```{r}
@@ -217,6 +236,8 @@ ggplot(behavior, aes(x = Behavior, y = Proportion, fill = Age)) +
   scale_fill_brewer(palette = "Blues", direction = -1)
 
 ```
+
+
 
 ```{r}
 behavior_data <- squirrel_data |>
@@ -283,6 +304,8 @@ vcd::mosaic(
 )
 ```
 
+### How do Eastern Gray squirrels interact with humans when being sighted?
+
 ```{r fig.width= 10}
 bubble_data <- squirrel_data |>
   select(X, Y, Eating, Foraging, Approaches, Runs.from) |>
@@ -298,20 +321,21 @@ bubble_data <- squirrel_data |>
   ) |>
   filter(Observed_Behavior == "true" & Observed_Interaction == "true") |>
   group_by(X, Y, Behavior, Interaction) |>
-  summarize(Count = n(), .groups = "drop")
+  summarize(Count = n(), .groups = "drop") |>
+  st_as_sf(coords = c("X", "Y"), crs = 4326)
 
-ggplot(bubble_data, aes(x = X, y = Y, size = Count, color = Behavior), shape = 1) +
-  geom_point(alpha = 0.7) +
-  facet_wrap(~Interaction) +
+# Plotting using geom_sf
+ggplot() +
+  geom_sf(data = bubble_data, aes(color = Interaction), size = 3, shape = 1, alpha = 1) +
+  facet_wrap(~Behavior) +
   labs(
     title = "Frequency of Human Interactions by Behavior and Location",
-    x = "Longitude (X)",
-    y = "Latitude (Y)",
     size = "Interaction Count",
     color = "Behavior"
   ) +
   theme_minimal(base_size = 14) +
-  scale_color_brewer(palette = "Set3")
+  scale_color_brewer(palette = "Set1")
+
 
 ```
 

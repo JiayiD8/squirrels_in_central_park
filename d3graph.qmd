@@ -31,3 +31,14 @@
 # # Export the data as JSON
 # write_json(squirrel_coords, "squirrel_coords.json")
 ```
+
+## How to interact with the graph?
+This graph explores squirrel sightings across Central Park. The darker blue hexagon indicates a higher concentration of squirrel sightings in that area. The hexagons are plotted with their actual spacial locations, resulting in a overall shape resembles Central Park. 
+
+**Hover your cursor over the hexagons**\
+To explore detailed squirrel sighting information, move your cursor over any blue hexagon on the map. A small window will appear showing both the total number of squirrels spotted in that specific area and a breakdown of counts for each fur color.
+
+**Pick the fur color you are interested in**\
+Use the checkboxes below the graph to select which fur colors you want to display on the map. You can choose to view any combination of gray, cinnamon, and black squirrels. You can also use the "Select All" button to show all fur colors at once, or "Clear All" deselect everything.
+
+## Did you spot any interesting patterns?

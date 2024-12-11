@@ -64,7 +64,17 @@
     "href": "d3graph.html",
     "title": "4  Interactive graph",
     "section": "",
-    "text": "Code\n# Get the data for interactive graph\n# library(tidyverse)\n# library(jsonlite)\n# \n# squirrel_data &lt;- read.csv(\"./2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv\")\n# \n# squirrel_coords &lt;- squirrel_data |&gt;\n#   mutate(across(Primary.Fur.Color, ~ na_if(as.character(.), \"\"))) |&gt;\n#   drop_na(Primary.Fur.Color) |&gt;\n#   select(X, Y, Primary.Fur.Color) |&gt;\n#   rename(longitude = X,\n#          latitude = Y,\n#          furColor = Primary.Fur.Color)\n# \n# # Export the data as JSON\n# write_json(squirrel_coords, \"squirrel_coords.json\")",
+    "text": "4.1 How to interact with the graph?\nThis graph explores squirrel sightings across Central Park. The darker blue hexagon indicates a higher concentration of squirrel sightings in that area. The hexagons are plotted with their actual spacial locations, resulting in a overall shape resembles Central Park.\nHover your cursor over the hexagons\nTo explore detailed squirrel sighting information, move your cursor over any blue hexagon on the map. A small window will appear showing both the total number of squirrels spotted in that specific area and a breakdown of counts for each fur color.\nPick the fur color you are interested in\nUse the checkboxes below the graph to select which fur colors you want to display on the map. You can choose to view any combination of gray, cinnamon, and black squirrels. You can also use the “Select All” button to show all fur colors at once, or “Clear All” deselect everything.",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Interactive graph</span>"
+    ]
+  },
+  {
+    "objectID": "d3graph.html#did-you-spot-any-interesting-patterns",
+    "href": "d3graph.html#did-you-spot-any-interesting-patterns",
+    "title": "4  Interactive graph",
+    "section": "4.2 Did you spot any interesting patterns?",
+    "text": "4.2 Did you spot any interesting patterns?",
     "crumbs": [
       "<span class='chapter-number'>4</span>  <span class='chapter-title'>Interactive graph</span>"
     ]

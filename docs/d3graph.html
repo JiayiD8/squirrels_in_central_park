@@ -179,7 +179,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#how-to-interact-with-the-graph" id="toc-how-to-interact-with-the-graph" class="nav-link active" data-scroll-target="#how-to-interact-with-the-graph"><span class="header-section-number">4.1</span> How to interact with the graph?</a></li>
+  <li><a href="#did-you-spot-any-interesting-patterns" id="toc-did-you-spot-any-interesting-patterns" class="nav-link" data-scroll-target="#did-you-spot-any-interesting-patterns"><span class="header-section-number">4.2</span> Did you spot any interesting patterns?</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/JiayiD8/squirrels_in_central_park/edit/main/d3graph.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/JiayiD8/squirrels_in_central_park/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -235,8 +242,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># write_json(squirrel_coords, "squirrel_coords.json")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
+<section id="how-to-interact-with-the-graph" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="how-to-interact-with-the-graph"><span class="header-section-number">4.1</span> How to interact with the graph?</h2>
+<p>This graph explores squirrel sightings across Central Park. The darker blue hexagon indicates a higher concentration of squirrel sightings in that area. The hexagons are plotted with their actual spacial locations, resulting in a overall shape resembles Central Park.</p>
+<p><strong>Hover your cursor over the hexagons</strong><br>
+To explore detailed squirrel sighting information, move your cursor over any blue hexagon on the map. A small window will appear showing both the total number of squirrels spotted in that specific area and a breakdown of counts for each fur color.</p>
+<p><strong>Pick the fur color you are interested in</strong><br>
+Use the checkboxes below the graph to select which fur colors you want to display on the map. You can choose to view any combination of gray, cinnamon, and black squirrels. You can also use the “Select All” button to show all fur colors at once, or “Clear All” deselect everything.</p>
+</section>
+<section id="did-you-spot-any-interesting-patterns" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="did-you-spot-any-interesting-patterns"><span class="header-section-number">4.2</span> Did you spot any interesting patterns?</h2>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -668,7 +686,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     </div>   
     <div class="nav-footer-center">
       &nbsp;
-    <div class="toc-actions"><ul><li><a href="https://github.com/JiayiD8/squirrels_in_central_park/edit/main/d3graph.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/JiayiD8/squirrels_in_central_park/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/JiayiD8/squirrels_in_central_park/edit/main/d3graph.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/JiayiD8/squirrels_in_central_park/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
     <div class="nav-footer-right">
 <p>This book was built with <a href="https://quarto.org/">Quarto</a>.</p>
 </div>

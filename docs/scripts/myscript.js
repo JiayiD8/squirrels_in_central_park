@@ -1,16 +1,13 @@
-// Set base dimensions
+// Code writing facilated by GPT
 const margin = {top: 60, right: 60, bottom: 40, left: 60};
 const baseWidth = 1000 - margin.left - margin.right;
 const baseHeight = 600 - margin.top - margin.bottom;
 
-// Create container for visualization
-const controls = d3.select("#plot")
-    .insert("div", "svg")
-    .style("margin-bottom", "10px");
+const container = d3.select("#plot")
+    .append("div")
+    .attr("id", "visualization-container");
 
-controls.append("span")
-    .text("Filter by fur color: ")
-    .style("margin-right", "10px");
+container.append("div")
 
 // Create tooltip
 const tooltip = d3.select("body")
@@ -24,20 +21,11 @@ const tooltip = d3.select("body")
     .style("font-size", "12px")
     .style("opacity", 0);
 
-// Add loading indicator
-d3.select("#plot")
-    .append("div")
-    .attr("id", "loading-message")
-    .style("color", "black")
-    .style("padding", "20px")
-    .text("Loading data...");
-
 // Load data from GitHub
 d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/refs/heads/main/scripts/squirrel_coords.json")
     .then(function(data) {
         console.log("Data loaded successfully");
-        
-        // Remove loading message
+
         d3.select("#loading-message").remove();
 
         // Calculate aspect ratio from data
@@ -56,17 +44,36 @@ d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/ref
         }
 
         // Create SVG with adjusted dimensions
-        const svg = d3.select("#plot")
-            .append("svg")
+        const svg = container.append("svg")
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
             .attr("transform", `translate(${margin.left},${margin.top})`);
 
+        // Add title
+        svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", -30)
+            .attr("text-anchor", "middle")
+            .style("font-size", "24px") 
+            .style("font-weight", "bold") 
+            .text("Squirrel Locations by Fur Color in Central Park");
+
+        // Create controls div after the SVG
+        const controls = container.append("div")
+            .style("margin-top", "20px") 
+            .style("text-align", "center"); 
+
+        // Add fur color text
+        controls.append("span")
+            .text("Filter by fur color: ")
+            .style("margin-right", "10px");
+
         // Get unique fur colors
         const furColors = [...new Set(data.map(d => d.furColor))];
         
-        // Add color selection buttons
+        // Add all buttons below the graph
+        // Add fur color selection buttons
         furColors.forEach(color => {
             controls.append("label")
                 .style("margin-right", "15px")
@@ -94,12 +101,11 @@ d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/ref
                 controls.selectAll("input").property("checked", false);
                 updateVisualization();
             });
-
-        // Calculate padding for the scales (5% of the range)
+        
+        // Add paddings for hexagons
         const xPadding = (xExtent[1] - xExtent[0]) * 0.05;
         const yPadding = (yExtent[1] - yExtent[0]) * 0.05;
 
-        // Create scales with padding
         const x = d3.scaleLinear()
             .domain([xExtent[0] - xPadding, xExtent[1] + xPadding])
             .range([0, width]);
@@ -107,15 +113,41 @@ d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/ref
         const y = d3.scaleLinear()
             .domain([yExtent[0] - yPadding, yExtent[1] + yPadding])
             .range([height, 0]);
-
-        // Create hexbin generator with smaller radius
+        
+        // Function to outline each hexagon so that the distribution can 
+        // be seen more clearly on graph
+        function createOutlineLayer(svg, hexbin, allData) {
+            // Create a permanent layer for the outline that will sit below the active hexagons
+            const outlineLayer = svg.append("g")
+                .attr("class", "outline-layer")
+                .style("pointer-events", "none"); // Make sure not to interact with cursor
+                
+            // Get all hexagons
+            const allBins = hexbin(allData);
+            
+            // Draw hexagon outlines
+            outlineLayer.selectAll("path")
+                .data(allBins)
+                .enter()
+                .append("path")
+                .attr("d", hexbin.hexagon())
+                .attr("transform", d => `translate(${d.x},${d.y})`)
+                .style("fill", "none")  
+                .style("stroke", "#ddd") 
+                .style("stroke-width", "1px"); 
+        }
+        
+        // Create the hexbin generator
         const hexbin = d3.hexbin()
             .x(d => x(d.longitude))
             .y(d => y(d.latitude))
             .radius(8)
             .extent([[0, 0], [width, height]]);
 
-        // Function to update the visualization
+        // Create the outline layer before the main visualization
+        createOutlineLayer(svg, hexbin, data);
+
+        // Modify the updateVisualization function to work with the outline
         function updateVisualization() {
             // Get selected colors
             const selectedColors = Array.from(controls.selectAll("input:checked").nodes())
@@ -132,7 +164,7 @@ d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/ref
                 .domain([0, d3.max(bins, d => d.length)]);
 
             // Update hexagons
-            const hexagons = svg.selectAll("path")
+            const hexagons = svg.selectAll("path.active-hexagon") 
                 .data(bins);
 
             // Remove old hexagons
@@ -141,6 +173,7 @@ d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/ref
             // Add new hexagons
             hexagons.enter()
                 .append("path")
+                .attr("class", "active-hexagon") // Add class for selection
                 .merge(hexagons)
                 .attr("d", hexbin.hexagon())
                 .attr("transform", d => `translate(${d.x},${d.y})`)
@@ -153,7 +186,6 @@ d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/ref
                     for (let [furColor, count] of colorCounts) {
                         tooltipText += `${furColor}: ${count}<br>`;
                     }
-                    
                     d3.select(this)
                         .style("opacity", 0.8);
                     tooltip.transition()
@@ -172,7 +204,7 @@ d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/ref
                 });
         }
 
-        // Format functions for coordinates
+        // Functions to change x and y axis ticks from numerical value to NESW 
         const formatLongitude = d => {
             const direction = d < 0 ? "W" : "E";
             return `${Math.abs(d).toFixed(2)}°${direction}`;
@@ -183,7 +215,7 @@ d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/ref
             return `${Math.abs(d).toFixed(2)}°${direction}`;
         };
 
-        // Add axes with cardinal directions
+        // Using Functions above to update the ticks
         svg.append("g")
             .attr("transform", `translate(0,${height})`)
             .call(d3.axisBottom(x)
@@ -195,31 +227,9 @@ d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/ref
                 .tickFormat(formatLatitude))
             .style("font-size", "12px");
 
-        // Add title
-        svg.append("text")
-            .attr("x", width / 2)
-            .attr("y", -30)
-            .attr("text-anchor", "middle")
-            .style("font-size", "16px")
-            .text("Squirrel Locations by Fur Color in Central Park");
-
-        // Initial visualization
         updateVisualization();
 
-        // Add event listeners to checkboxes
+        // Event listeners for checkboxes
         controls.selectAll("input")
             .on("change", updateVisualization);
-
-    }).catch(function(error) {
-        console.error("Error:", error);
-        d3.select("#loading-message").remove();
-        d3.select("#plot")
-            .append("div")
-            .style("color", "red")
-            .style("padding", "20px")
-            .html(`
-                Error loading the data:<br>
-                ${error.message}<br><br>
-                Please check the console (F12) for more details
-            `);
     });

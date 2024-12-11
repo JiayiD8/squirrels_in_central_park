@@ -1,7 +1,3 @@
-// Log the current page URL to help debug the path
-console.log("Current page URL:", window.location.href);
-console.log("Current page pathname:", window.location.pathname);
-
 // Set the dimensions and margins
 const margin = {top: 40, right: 40, bottom: 40, left: 40};
 const width = 800 - margin.left - margin.right;
@@ -35,39 +31,14 @@ d3.select("#plot")
     .style("padding", "20px")
     .text("Loading data...");
 
-// Try multiple possible paths
-const possiblePaths = [
-    "./scripts/squirrel_coords.json",
-    "../scripts/squirrel_coords.json",
-    "/scripts/squirrel_coords.json",
-    "scripts/squirrel_coords.json"
-];
-
-// Function to try loading data from different paths
-function tryLoadData(paths) {
-    if (paths.length === 0) {
-        throw new Error("Could not find data file in any of the tried paths");
-    }
-    
-    const currentPath = paths[0];
-    console.log("Trying to load data from:", currentPath);
-    
-    return d3.json(currentPath)
-        .catch(error => {
-            console.log(`Failed to load from ${currentPath}:`, error);
-            return tryLoadData(paths.slice(1));
-        });
-}
-
-// Try loading the data
-tryLoadData(possiblePaths)
+// Load data from GitHub
+d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/refs/heads/main/scripts/squirrel_coords.json")
     .then(function(data) {
-        console.log("Data loaded successfully:", data);
+        console.log("Data loaded successfully");
         
         // Remove loading message
         d3.select("#loading-message").remove();
 
-        // [Rest of the visualization code remains the same...]
         // Create scales
         const xExtent = d3.extent(data, d => d.longitude);
         const yExtent = d3.extent(data, d => d.latitude);
@@ -81,7 +52,7 @@ tryLoadData(possiblePaths)
             .range([height, 0]);
 
         // Create hexbin generator
-        const hexbin = d3.hexbin()
+        const hexbin = d3.hexbin()  // Using d3.hexbin() directly
             .x(d => x(d.longitude))
             .y(d => y(d.latitude))
             .radius(10)
@@ -89,11 +60,61 @@ tryLoadData(possiblePaths)
 
         // Process data for hexbin
         const bins = hexbin(data);
+        console.log("Bins created:", bins.length);
 
-        // [Rest of your visualization code...]
-        
+        // Color scale
+        const color = d3.scaleSequential(d3.interpolateBlues)
+            .domain([0, d3.max(bins, d => d.length)]);
+
+        // Draw hexagons
+        svg.selectAll("path")
+            .data(bins)
+            .enter().append("path")
+            .attr("d", hexbin.hexagon())
+            .attr("transform", d => `translate(${d.x},${d.y})`)
+            .attr("fill", d => color(d.length))
+            .style("stroke", "#fff")
+            .style("stroke-width", "0.5px")
+            .on("mouseover", function(event, d) {
+                d3.select(this)
+                    .style("opacity", 0.8);
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltip.html(`Count: ${d.length} squirrels`)
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+            })
+            .on("mouseout", function(d) {
+                d3.select(this)
+                    .style("opacity", 1);
+                tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            });
+
+        // Add axes
+        svg.append("g")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(x)
+                .tickFormat(d => d.toFixed(4)))
+            .style("font-size", "12px");
+
+        svg.append("g")
+            .call(d3.axisLeft(y)
+                .tickFormat(d => d.toFixed(4)))
+            .style("font-size", "12px");
+
+        // Add title
+        svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", -10)
+            .attr("text-anchor", "middle")
+            .style("font-size", "16px")
+            .text("Squirrel Locations in Central Park");
+
     }).catch(function(error) {
-        console.error("Final error loading the data:", error);
+        console.error("Error:", error);
         
         // Remove loading message and show error
         d3.select("#loading-message").remove();
@@ -106,9 +127,6 @@ tryLoadData(possiblePaths)
             .html(`
                 Error loading the data:<br>
                 ${error.message}<br><br>
-                Please check:<br>
-                1. Current page URL: ${window.location.href}<br>
-                2. Tried paths: ${possiblePaths.join(', ')}<br>
-                3. Check the browser console (F12) for more details
+                Please check the console (F12) for more details
             `);
     });

@@ -64,7 +64,7 @@
     "href": "d3graph.html",
     "title": "4  Interactive graph",
     "section": "",
-    "text": "Code\n# Get the data for interactive graph\n# library(tidyverse)\n# library(jsonlite)\n# \n# squirrel_data &lt;- read.csv(\"./2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv\")\n# \n# squirrel_coords &lt;- squirrel_data |&gt;\n#   mutate(across(everything(), ~ na_if(as.character(.), \"\"))) |&gt;\n#   drop_na(Primary.Fur.Color) |&gt;\n#   select(X, Y, Primary.Fur.Color) |&gt;\n#   rename(longitude = X,\n#          latitude = Y,\n#          furColor = Primary.Fur.Color)\n# \n# # Export the data as JSON\n# write_json(squirrel_coords, \"squirrel_coords.json\")",
+    "text": "Code\n# Get the data for interactive graph\n# library(tidyverse)\n# library(jsonlite)\n# \n# squirrel_data &lt;- read.csv(\"./2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv\")\n# \n# squirrel_coords &lt;- squirrel_data |&gt;\n#   mutate(across(Primary.Fur.Color, ~ na_if(as.character(.), \"\"))) |&gt;\n#   drop_na(Primary.Fur.Color) |&gt;\n#   select(X, Y, Primary.Fur.Color) |&gt;\n#   rename(longitude = X,\n#          latitude = Y,\n#          furColor = Primary.Fur.Color)\n# \n# # Export the data as JSON\n# write_json(squirrel_coords, \"squirrel_coords.json\")",
     "crumbs": [
       "<span class='chapter-number'>4</span>  <span class='chapter-title'>Interactive graph</span>"
     ]

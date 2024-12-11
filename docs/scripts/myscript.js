@@ -1,17 +1,9 @@
-// Set the dimensions and margins
-const margin = {top: 60, right: 40, bottom: 40, left: 40};  // Increased top margin for controls
-const width = 800 - margin.left - margin.right;
-const height = 600 - margin.top - margin.bottom;
+// Set base dimensions
+const margin = {top: 60, right: 60, bottom: 40, left: 60};
+const baseWidth = 1000 - margin.left - margin.right;
+const baseHeight = 600 - margin.top - margin.bottom;
 
-// Create SVG container
-const svg = d3.select("#plot")
-    .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
-
-// Create color selection controls
+// Create container for visualization
 const controls = d3.select("#plot")
     .insert("div", "svg")
     .style("margin-bottom", "10px");
@@ -48,6 +40,29 @@ d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/ref
         // Remove loading message
         d3.select("#loading-message").remove();
 
+        // Calculate aspect ratio from data
+        const xExtent = d3.extent(data, d => d.longitude);
+        const yExtent = d3.extent(data, d => d.latitude);
+        const dataAspectRatio = Math.abs((xExtent[1] - xExtent[0]) / (yExtent[1] - yExtent[0]));
+        
+        // Adjust width or height to maintain aspect ratio
+        let width = baseWidth;
+        let height = baseHeight;
+        
+        if (baseWidth / baseHeight > dataAspectRatio) {
+            width = baseHeight * dataAspectRatio;
+        } else {
+            height = baseWidth / dataAspectRatio;
+        }
+
+        // Create SVG with adjusted dimensions
+        const svg = d3.select("#plot")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
         // Get unique fur colors
         const furColors = [...new Set(data.map(d => d.furColor))];
         
@@ -80,20 +95,24 @@ d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/ref
                 updateVisualization();
             });
 
-        // Create scales
+        // Calculate padding for the scales (5% of the range)
+        const xPadding = (xExtent[1] - xExtent[0]) * 0.05;
+        const yPadding = (yExtent[1] - yExtent[0]) * 0.05;
+
+        // Create scales with padding
         const x = d3.scaleLinear()
-            .domain(d3.extent(data, d => d.longitude))
+            .domain([xExtent[0] - xPadding, xExtent[1] + xPadding])
             .range([0, width]);
 
         const y = d3.scaleLinear()
-            .domain(d3.extent(data, d => d.latitude))
+            .domain([yExtent[0] - yPadding, yExtent[1] + yPadding])
             .range([height, 0]);
 
-        // Create hexbin generator
+        // Create hexbin generator with smaller radius
         const hexbin = d3.hexbin()
             .x(d => x(d.longitude))
             .y(d => y(d.latitude))
-            .radius(10)
+            .radius(8)
             .extent([[0, 0], [width, height]]);
 
         // Function to update the visualization
@@ -129,7 +148,6 @@ d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/ref
                 .style("stroke", "#fff")
                 .style("stroke-width", "0.5px")
                 .on("mouseover", function(event, d) {
-                    // Group squirrels by fur color in this hexbin
                     const colorCounts = d3.rollup(d, v => v.length, v => v.furColor);
                     let tooltipText = `Total: ${d.length} squirrels<br>`;
                     for (let [furColor, count] of colorCounts) {
@@ -154,16 +172,27 @@ d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/ref
                 });
         }
 
-        // Add axes
+        // Format functions for coordinates
+        const formatLongitude = d => {
+            const direction = d < 0 ? "W" : "E";
+            return `${Math.abs(d).toFixed(2)}°${direction}`;
+        };
+
+        const formatLatitude = d => {
+            const direction = d < 0 ? "S" : "N";
+            return `${Math.abs(d).toFixed(2)}°${direction}`;
+        };
+
+        // Add axes with cardinal directions
         svg.append("g")
             .attr("transform", `translate(0,${height})`)
             .call(d3.axisBottom(x)
-                .tickFormat(d => d.toFixed(4)))
+                .tickFormat(formatLongitude))
             .style("font-size", "12px");
 
         svg.append("g")
             .call(d3.axisLeft(y)
-                .tickFormat(d => d.toFixed(4)))
+                .tickFormat(formatLatitude))
             .style("font-size", "12px");
 
         // Add title

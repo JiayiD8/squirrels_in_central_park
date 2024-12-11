@@ -81,28 +81,6 @@ scale_colour_manual(values = c('black', 'brown','grey', 'white')) +
 theme_minimal()  +
 labs(title = 'Squirrel Sighting Locations by Colour')
 ```
-```{r}
-library(sf)
-x_sf <- squirrel_data |>
-mutate(Foraging = if_else(Foraging == TRUE, 
-                      'Foraging',
-                         if_else(Foraging == FALSE, 
-                                'Not Foraging', 'Other'))) |>
-mutate(Running = if_else(Running == TRUE, 
-                      'Running',
-                         if_else(Running == FALSE, 
-                                'Not Running', 'Other'))) |>
-  st_as_sf(coords = c('X', 'Y'), crs = 4326) 
-
-  ggplot() + 
-    geom_sf(data = x_sf, aes(colour = squirrel_data$Primary.Fur.Color), size = 1.5, shape = 1, alpha = .7) + 
-facet_grid(~Shift) + 
-scale_colour_manual(values = c('black', 'brown','grey', 'white')) + 
-theme_minimal()  +
-labs(title = 'Squirrel Sighting Locations by Colour')
-```
-
-
 
 ```{r}
 # Convert the Date column to proper date format
@@ -240,6 +218,36 @@ ggplot(behavior_data,
   scale_fill_brewer(palette = "Set3")
 
 ```
+
+```{r}
+library(viridis)
+library(scico)
+behavior_location <- squirrel_data |>
+  select(Running, Chasing, Climbing, Eating, Foraging, Location) |>
+  pivot_longer(
+    cols = c(Running, Chasing, Climbing, Eating, Foraging),
+    names_to = "Behavior",
+    values_to = "Observed"
+  ) |>
+  filter(Observed == "true") |>
+  group_by(Behavior, Location) |>
+  summarize(Count = n(), .groups = "drop")  
+
+mosaic_table <- xtabs(Count ~ Location + Behavior, data = behavior_location)
+
+vcd::mosaic(
+  ~ Behavior + Location,
+  data = mosaic_table,
+  direction = c("h", "v"),
+  highlighting = "Behavior",
+  highlighting_fill = scico(5, palette = "lajolla"), # Using the La Jolla palette
+  shade = TRUE,
+  legend = FALSE,
+  main = "Mosaic of Behaviors by Location"
+)
+```
+
+
 ```{r}
 interaction_data <- squirrel_data |>
   select(Running, Climbing, Eating, Foraging, Approaches, Runs.from) |>
@@ -303,5 +311,37 @@ ggplot(bubble_data, aes(x = X, y = Y, size = Count, color = Behavior), shape = 1
   theme_minimal(base_size = 14) +
   scale_color_brewer(palette = "Set3")
 
+```
+
+```{r fig.height = 9, fig.width = 9}
+sound_interaction <- squirrel_data |>
+  select(Kuks, Quaas, Moans, Location, Approaches, Indifferent, Runs.from) |>
+  pivot_longer(
+    cols = c(Approaches, Indifferent, Runs.from),
+    names_to = "Interaction",
+    values_to = "Observed_Interaction"
+  ) |>
+  pivot_longer(
+    cols = c(Kuks, Quaas, Moans),
+    names_to = "Sound",
+    values_to = "Sound_Value"
+  ) |>
+  filter(Sound_Value == "true", Observed_Interaction == "true") |>
+  drop_na(Interaction, Sound) |>    # Corrected spelling here
+  group_by(Location, Interaction, Sound) |>
+  summarize(Freq = n(), .groups = "drop")
+
+ggplot(sound_interaction,
+       aes(axis1 = Location, axis2 = Sound, axis3 = Interaction, y = Freq, fill = Sound)) +
+  geom_alluvium(color = "black") +
+  geom_stratum() +
+  geom_text(stat = "stratum", aes(label = after_stat(stratum))) +
+  labs(
+    title = "Transition of Human Interactions Across location and sound",
+    x = "Categories",
+    y = "Count of Observed Behaviors"
+  ) +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set3")
 ```
 

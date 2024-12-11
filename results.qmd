@@ -92,27 +92,6 @@ ggplot() +
     labs(title = 'Squirrel Sighting Locations by Color')
 ```
 
-```{r}
-coord_sf <- squirrel_data |>
-  st_as_sf(coords = c('X', 'Y'), crs = 4326) |>
-  pivot_longer(
-    cols = c(Running, Chasing, Climbing, Eating, Foraging), 
-    names_to = "Behavior",
-    values_to = "Observed"
-  ) |>
-  filter(Observed == "true") 
-  # No group_by needed if not summarizing
-
-ggplot() + 
-  geom_sf(data = coord_sf, aes(color = Primary.Fur.Color), 
-          size = 1.5, shape = 1, alpha = 0.7) + 
-  scale_color_manual(values = c('black', '#D2691E', 'grey')) + 
-  facet_wrap(~ Behavior) +
-  theme_minimal() +
-  labs(title = 'Squirrel Sighting Locations by Color')
-
-```
-
 
 ```{r}
 library(scales)
@@ -143,7 +122,27 @@ ggplot(proportion_data, aes(x = Primary.Fur.Color, y = Count, fill = Behavior)) 
   scale_fill_brewer(palette = "Set3")
 
 ```
+```{r}
+# Convert to sf object first
+coord_sf_obj <- squirrel_data |> 
+  st_as_sf(coords = c('X', 'Y'), crs = 4326)
 
+# Extract coordinates for density calculation
+coords <- st_coordinates(coord_sf_obj)
+
+# Create the plot
+ggplot() +
+  # Add filled contours with transparency
+  stat_density_2d(data = as.data.frame(coords),
+                 aes(X, Y, color = after_stat(level)),
+                 geom = "density_2d") +
+  theme_minimal() +
+  labs(title = 'Squirrel Density Contours by Location',
+       x = 'Longitude',
+       y = 'Latitude') +
+  # Adjust aspect ratio for better geographic representation
+  coord_fixed()
+```
 
 ```{r}
 # convert the Date column to proper date format
@@ -330,7 +329,7 @@ sound_interaction <- squirrel_data |>
     values_to = "Sound_Value"
   ) |>
   filter(Sound_Value == "true", Observed_Interaction == "true") |>
-  drop_na(Interaction, Sound) |>    # Corrected spelling here
+  drop_na(Interaction, Sound) |>
   group_by(Location, Interaction, Sound) |>
   summarize(Freq = n(), .groups = "drop")
 
@@ -348,3 +347,23 @@ ggplot(sound_interaction,
   scale_fill_brewer(palette = "Set3")
 ```
 
+```{r}
+# coord_sf <- squirrel_data |>
+#   st_as_sf(coords = c('X', 'Y'), crs = 4326) |>
+#   pivot_longer(
+#     cols = c(Running, Chasing, Climbing, Eating, Foraging), 
+#     names_to = "Behavior",
+#     values_to = "Observed"
+#   ) |>
+#   filter(Observed == "true") 
+#   # No group_by needed if not summarizing
+# 
+# ggplot() + 
+#   geom_sf(data = coord_sf, aes(color = Primary.Fur.Color), 
+#           size = 1.5, shape = 1, alpha = 0.7) + 
+#   scale_color_manual(values = c('black', '#D2691E', 'grey')) + 
+#   facet_wrap(~ Behavior) +
+#   theme_minimal() +
+#   labs(title = 'Squirrel Sighting Locations by Color')
+
+```

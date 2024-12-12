@@ -196,6 +196,7 @@ Here we explored how squirrels' activity patterns vary when sighted on the groun
 After analyzing the spatial distribution and environmental influences on Eastern Gray squirrels in Central Park, it's essential to examine their behavioral patterns when being encountered. We explore not only how squirrels interact with humans when sighted, but also the vocalizations they produce during these interactions.
 
 ```{r fig.height=8, fig.width= 12}
+# Data for the plot
 bubble_data <- squirrel_data |>
   select(X, Y, Eating, Foraging, Approaches, Runs.from) |>
   pivot_longer(
@@ -213,14 +214,14 @@ bubble_data <- squirrel_data |>
   summarize(Count = n(), .groups = "drop") |>
   st_as_sf(coords = c("X", "Y"), crs = 4326)
 
-# Plotting using geom_sf
+# Plotting accurate spatial distribution using geom_sf
 ggplot() +
   geom_sf(data = bubble_data, aes(color = Interaction), size = 3, shape = 1, alpha = 1) +
   facet_wrap(~Behavior) +
   labs(
-    title = expression(bold("Distribution of Human Interactions by Behavior and Location")),
+    title = expression(bold("Distribution of Reaction to Human Presence\nby Behavior and Location")),
     size = "Interaction Count",
-    color = "Human Interaction"
+    color = "Reaction to Human Presence"
   ) +
   theme_minimal(22) +
   scale_color_brewer(palette = "Set1",
@@ -230,14 +231,15 @@ ggplot() +
         axis.text.y = element_text(size = 12), 
         panel.spacing = unit(5, "lines"),
         legend.position = "bottom",
-        plot.title = element_text(hjust = 0.5) )
+        plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(t = 28)
+        )
 ```
 
-Generally, there are more squirrels running from humans rather than approaching them. For both foraging and eating squirrels, more of them are likely to approach humans in the southern part of the park. This pattern might be due to higher foot traffic and more frequent feeding by visitors in the southern areas, potentially making squirrels there more habituated to human presence.
+Generally, there are more squirrels running from humans rather than approaching them, as this is a natural reaction by wild life. For squirrels that are either foraging or eating, more of them are more likely to approach humans in the southern part of the park. This pattern might be due to higher foot traffic and more frequent feeding by visitors in the southern areas, potentially making squirrels there more habituated to human presence.
 
-Then we exploring how do these two variables, location and human interaction attitude, related to the sound squirrels made. 
 
-```{r fig.height = 9, fig.width = 9}
+```{r fig.height = 9, fig.width = 11}
 sound_interaction <- squirrel_data |>
   mutate(across(everything(), ~replace_na(., "Unknown"))) |>
   select(Kuks, Quaas, Moans, Location, Approaches, Indifferent, Runs.from) |>
@@ -266,18 +268,23 @@ ggplot(sound_interaction,
             aes(label = after_stat(stratum)),
             size = 3.2) +
   labs(
-    title = expression(bold("Distribution of Squirrel Responses to Humans\nby Vocalizations and Locations")),
-    x = "Categories",
+    title = expression(bold("Distribution of Squirrel Responses to Human Presence\nby Vocalizations and Locations")),
     y = "Count of Observed Behaviors"
   ) +
   theme_minimal(16) +
   theme(
     plot.title = element_text(hjust = 0.5),
     plot.margin = margin(t = 22)) +
-  scale_fill_brewer(palette = "Set3", na.translate = FALSE)
+  scale_fill_brewer(palette = "Set3", na.translate = FALSE) +
+  scale_x_discrete(
+    limits = c("Interaction", "Sound", "Location"),
+    labels = c("Reaction", "Vocalization", "Location")
+  )
 ```
 
-Kuks are more common since squirrels make such chirpy vocal communication used for a variety of reasons. are above ground and tend to lead to indifferent reactions. Moans only occurs when squirrels see a air predator like hawk but there are few air predictors in the city so moans is the least frequent sound only for squirrels above ground and results in imediate rans away. Quaas occurs with a presence of a ground predator, like a dog or human, so squirrels tend to run away or act indifferent from human's presence. 
+First we want to explain the difference between three vocalizations. Kuks is a chirpy vocal communication used for a variety of reasons. Moans is a high-pitched vocal communication which can indicate the presence of an air predator such as a hawk. Quaas is an elongated vocal communication which can indicate the presence of a ground predator such as a dog.
+
+For all sightings where squirrels approaches human, they make Kuks sound regardless of their locations, indicating they do not see humans as a potential threat. Moans only occurs when squirrels run away from human and were sighted about the ground. However this sound indicate the presence of air predators. Therefore, they could be running away for a different reason. Overall squirrels seem to make Kuks and Quaas in a similar frequency in different location and with different reactions.
 
 ## Exploration of squirrels of different Primary Fur Color 
 **General Questions**: How do black, cinnamon and standard gray morphs of Eastern Gray squirrels (Sciurus Carolinensis) differ in their spatial distributions and activity patterns in Central Park?

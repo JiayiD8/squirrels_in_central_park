@@ -1,5 +1,5 @@
 // Code writing facilated by GPT
-const margin = {top: 60, right: 60, bottom: 40, left: 60};
+const margin = {top: 60, right: 90, bottom: 40, left: 90};
 const baseWidth = 1000 - margin.left - margin.right;
 const baseHeight = 600 - margin.top - margin.bottom;
 
@@ -55,9 +55,9 @@ d3.json("https://raw.githubusercontent.com/JiayiD8/squirrels_in_central_park/ref
             .attr("x", width / 2)
             .attr("y", -30)
             .attr("text-anchor", "middle")
-            .style("font-size", "24px") 
+            .style("font-size", "22px") 
             .style("font-weight", "bold") 
-            .text("Squirrel Locations by Fur Color in Central Park");
+            .text("Squirrel Sighting Locations by Fur Color in Central Park");
 
         // Create controls div after the SVG
         const controls = container.append("div")

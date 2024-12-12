@@ -67,7 +67,12 @@ squirrel_data <- read.csv("./2018_Central_Park_Squirrel_Census_-_Squirrel_Data_2
 squirrel_data <- squirrel_data |>
   mutate(across(everything(), ~ na_if(as.character(.), ""))) |>
   drop_na(Age, Location, Primary.Fur.Color) |>
-  filter(Age != "?")
+  filter(Age != "?") |>
+  mutate(Shift = fct_recode(Shift,
+    "Morning" = "AM",
+    "Late Afternoon" = "PM"
+  )) |>
+  mutate(Shift = fct_relevel(Shift, "Morning", "Late Afternoon"))
 ```
 
 ### What is the total number of sightings of black, cinnamon, and gray morphs of Eastern Gray squirrels within Central Park?
@@ -102,7 +107,7 @@ ggplot() +
          color = 'Primary Fur Color')
 ```
 
-The map shows that Gray squirrels seem to donimate the central park. They are widespread and seen almost everywhere on the map. Cinnamon-colored squirrels are less common and appear more scattered on the lower side of the park. Black squirrels are the rarest, with only a few sightings concentrated in specific areas. Such data might because of the ways of data collection that there might only be several black squirrels and the data are clustered becuase different people sighted it around it's drey at different time.  
+The map shows that Gray squirrels seem to donimate the central park. They are widespread and seen almost everywhere on the map. Cinnamon-colored squirrels are less common and appear more scattered on the lower side of the park. Black squirrels are the rarest, with only a few sightings concentrated in specific areas. Such data might because of the ways of data collection that there might only be several black squirrels and the data are clustered because different people sighted it around it's drey at different time.  
 
 ### How do sighted behaviors differ among black, cinnamon, and gray morphs of Eastern Gray squirrels in Central Park?
 
@@ -182,24 +187,24 @@ From this plot, we can see that squirrels are spread throughout the central park
 
 ### How does the frequency of Eastern Gray squirrel sightings vary across different times of day, different dates, and weather conditions in Central Park?
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 # convert the Date column to proper date format
-squirrel_data <- squirrel_data |>
+squirrel_data_ridgeline <- squirrel_data |>
   mutate(
     Date = as.Date(Date, format = "%m%d%Y"),
     # make shift a factor with PM first so AM appears on top
-    Shift = factor(Shift, levels = c("PM", "AM"))
+    Shift = factor(Shift, levels = c("Late Afternoon", "Morning"))
   )
 
 # ridgeline plot
-ggplot(squirrel_data, aes(x = Date, y = Shift, fill = Shift)) +
+ggplot(squirrel_data_ridgeline, aes(x = Date, y = Shift, fill = Shift)) +
   geom_density_ridges(
     alpha = 0.6,
     scale = 0.9,
     rel_min_height = 0.01
   ) +
   scale_fill_manual(
-    values = c("AM" = "#FDB462", "PM" = "#80B1D3")
+    values = c("Morning" = "#FDB462", "Late Afternoon" = "#80B1D3")
   ) +
   scale_x_date(
     # Show every date on x-axis
@@ -221,13 +226,12 @@ ggplot(squirrel_data, aes(x = Date, y = Shift, fill = Shift)) +
     panel.grid.minor = element_blank()
   )
 ```
-This plot shows the distribution of squirrel sightings across days in October, divided into morning (AM) and afternoon (PM) shifts. The overall sighting density are similar for morning and afternoon across October, except several days like Oct 07, 10, 13, and 14. This could becuase different weather condition across the day. For example, 
-
+This plot shows the distribution of squirrel sightings across days in October, divided into morning (AM) and afternoon (PM) shifts. The overall sighting density are similar for morning and afternoon across October, except several days like Oct 07, 10, 13, and 14. This could becuause different weather condition across the day. For example, on Oct 07 and 08, it was rainy in the late afternoon, so we sighted more squirrels in the morning. In contrast, more sightings happened in the afternoon on 13nd and 14th since it rains in the morning. 
 
 ### How are Eastern Gray squirrel’s activity patterns affected by age and environmental features?
 
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(scales)
 behavior <- squirrel_data |>
   select(Age, Running, Chasing, Climbing, Eating, Foraging, Shift) |>
@@ -237,15 +241,15 @@ behavior <- squirrel_data |>
     values_to = "Observed"
   ) |>
   filter(Observed == "true") |>
-  # Summarize counts per Age, Behavior, and Shift
+  # summarize counts per Age, Behavior, and Shift
   group_by(Age, Behavior, Shift) |>
   summarize(Count = n(), .groups = "drop") |>
-  # Now group by Age and Shift to get the total count for that subset
+  # now group by Age and Shift to get the total count for that subset
   group_by(Age, Shift) |>
   mutate(Proportion = Count / sum(Count)) |>
   ungroup()
 
-ggplot(behavior, aes(x = Behavior, y = Proportion, fill = Age)) +
+ggplot(behavior, aes(x = reorder(Behavior, -Proportion), y = Proportion, fill = Age)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(
     title = "Comparison of Behaviors by Age and Shift (Proportion)",
@@ -255,40 +259,41 @@ ggplot(behavior, aes(x = Behavior, y = Proportion, fill = Age)) +
   ) +
   facet_wrap(~Shift) +
   theme_minimal() +
-  scale_y_continuous(labels = label_percent())+
+  scale_y_continuous(labels = label_percent()) +
   scale_fill_manual(
     values = c("Adult" = "#502419", "Juvenile" = "#7ea172")
-  ) 
-
-```
-
-```{r}
-foraging_alluvial_data <- squirrel_data |>
-  filter(Foraging == "true") |>
-  group_by(Shift, Location) |>
-  summarize(Count = n(), .groups = "drop") |>
-  mutate(
-    Shift = factor(Shift),
-    Location = factor(Location)
   )
+```
+The most interesting observation is that foraging dominates squirrels' sighted behaviors for both Adult and Juvenile squirrels across the day. The activities related to foods, foraging and eating, take nearly 60% of Adult squirrels' sighted activities and around 50% of Juvenile squirrels' sighted activities. There is even an increase in proportion of foraging and eating sighted in 
 
-ggplot(foraging_alluvial_data,
-       aes(axis1 = Shift, axis2 = Location, y = Count, fill = Location)) +
-  geom_alluvium(color = "black") +
-  geom_stratum() +
-  geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 2) +
-  scale_x_discrete(expand = c(0.1, 0.1)) +
-  labs(
-    title = "Foraging Patterns Across Shift and Location",
-    x = "", 
-    y = "Count"
-  ) +
-  theme_minimal()
+```{r}
+# foraging_alluvial_data <- squirrel_data |>
+#   filter(Foraging == "true") |>
+#   drop_na(Location, Shift) |>
+#   group_by(Shift, Location) |>
+#   summarize(Count = n(), .groups = "drop") |>
+#   mutate(
+#     Shift = factor(Shift),
+#     Location = factor(Location)
+#   )
+# 
+# ggplot(foraging_alluvial_data,
+#        aes(axis1 = Shift, axis2 = Location, y = Count, fill = Location)) +
+#   geom_alluvium(color = "black") +
+#   geom_stratum() +
+#   geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 2) +
+#   scale_x_discrete(expand = c(0.1, 0.1)) +
+#   labs(
+#     title = "Foraging Patterns Across Shift and Location",
+#     x = "", 
+#     y = "Count"
+#   ) +
+#   theme_minimal()
 
 ```
 
 
-```{r}
+```{r fig.height=8, fig.width=8}
 behavior_location <- squirrel_data |>
   select(Running, Chasing, Climbing, Eating, Foraging, Location) |>
   pivot_longer(
@@ -317,8 +322,11 @@ vcd::mosaic(
   main = "Mosaic of Behaviors by Location"
 )
 ```
+As we mainly interested in how squirrels' behaviors varied, we would like to explore various other variables. About three third of the data are made on the ground level as people's vision are limited to catch squirrels in the tree. Clearly, ground plane squirrels show more running and foraging behaviors, while above ground squirrels exhibit more climbing and chasing activities. The pattern is reasonable that the high frequency of ground foraging aligns with squirrels' feeding patterns - they mainly eat nuts and pine cones which typically fall to the ground when mature. Eating behavior seems to be equally frequent to be sighted for both setting. 
 
 ### How do Eastern Gray squirrels interact with humans when being sighted?
+
+Previous plot results that running and climbing might be solely related to the sighted location, hence, we want to take a closer look at the squirrels' foraging and eating behaviors and any possible correlation with their attitude when interacting with human. 
 
 ```{r fig.width= 10}
 bubble_data <- squirrel_data |>
@@ -343,15 +351,17 @@ ggplot() +
   geom_sf(data = bubble_data, aes(color = Interaction), size = 3, shape = 1, alpha = 1) +
   facet_wrap(~Behavior) +
   labs(
-    title = "Frequency of Human Interactions by Behavior and Location",
+    title = "Distribution of Human Interactions by Behavior and Location",
     size = "Interaction Count",
-    color = "Behavior"
+    color = "Human Interation"
   ) +
   theme_minimal(base_size = 14) +
   scale_color_brewer(palette = "Set1")
-
-
 ```
+
+Generally, there are more squirrels running from humans rather than approaching them. For both foraging and eating squirrels, more of them are likely to approach humans in the southern part of the park. This pattern might be due to higher foot traffic and more frequent feeding by visitors in the southern areas, potentially making squirrels there more habituated to human presence.
+
+Then we exploring how do these two variables, location and human interaction attitude, related to the sound squirrels made. 
 
 ```{r fig.height = 9, fig.width = 9}
 sound_interaction <- squirrel_data |>
@@ -367,13 +377,13 @@ sound_interaction <- squirrel_data |>
     values_to = "Sound_Value"
   ) |>
   filter(Sound_Value == "true", Observed_Interaction == "true") |>
-  drop_na(Interaction, Sound) |>
+  drop_na(Interaction, Sound, Location) |>
   group_by(Location, Interaction, Sound) |>
   summarize(Freq = n(), .groups = "drop")
 
 ggplot(sound_interaction,
        aes(axis1 = Location, axis2 = Sound, axis3 = Interaction, y = Freq, fill = Sound)) +
-  geom_alluvium(color = "black") +
+  geom_alluvium(color = "grey") +
   geom_stratum() +
   geom_text(stat = "stratum", aes(label = after_stat(stratum))) +
   labs(
@@ -384,6 +394,8 @@ ggplot(sound_interaction,
   theme_minimal() +
   scale_fill_brewer(palette = "Set3")
 ```
+
+Kuks are more common since squirrels make such chirpy vocal communication used for a variety of reasons. are above ground and tend to lead to indifferent reactions. Moans only occurs when squirrels see a air predator like hawk but there are few air predictors in the city so moans is the least frequent sound only for squirrels above ground and results in imediate rans away. Quaas occurs with a presence of a ground predator, like a dog or human, so squirrels tend to run away or act indifferent from human's presence. 
 
 ```{r}
 # coord_sf <- squirrel_data |>

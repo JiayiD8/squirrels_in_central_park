@@ -561,7 +561,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="exploration-of-squirrels-of-different-primary-fur-color" class="level2" data-number="3.2">
 <h2 data-number="3.2" class="anchored" data-anchor-id="exploration-of-squirrels-of-different-primary-fur-color"><span class="header-section-number">3.2</span> Exploration of squirrels of different Primary Fur Color</h2>
-<p><strong>General Questions</strong>: How do black, cinnamon and standard gray morphs of Eastern Gray squirrels (Sciurus Carolinensis) differ in their spatial distributions and activity patterns in Central Park?</p>
+<p>While all these squirrels are Eastern Gray squirrels, not all of them have gray fur color. The Primary Fur Color column in our dataset documents the color of the squirrels being sighted. We wonder if there is any interesting difference if we look at squirrels with different colors separately. We will explore that in this section.</p>
 <section id="what-is-the-total-number-of-sightings-of-black-cinnamon-and-gray-morphs-of-eastern-gray-squirrels-within-central-park" class="level3" data-number="3.2.1">
 <h3 data-number="3.2.1" class="anchored" data-anchor-id="what-is-the-total-number-of-sightings-of-black-cinnamon-and-gray-morphs-of-eastern-gray-squirrels-within-central-park"><span class="header-section-number">3.2.1</span> What is the total number of sightings of black, cinnamon, and gray morphs of Eastern Gray squirrels within Central Park?</h3>
 <div class="cell">
@@ -570,13 +570,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(squirrel_data, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">fct_infreq</span>(Primary.Fur.Color), <span class="at">fill =</span> Primary.Fur.Color)) <span class="sc">+</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Counts by Primary Fur Color"</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="fu">expression</span>(<span class="fu">bold</span>(<span class="st">"Counts by Primary Fur Color"</span>)),</span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Primary Fur Color"</span>,</span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Count of Squirrels"</span></span>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">'black'</span>, <span class="st">'#D2691E'</span>, <span class="st">'grey'</span>), <span class="at">guide =</span> <span class="cn">FALSE</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>)) <span class="sc">+</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">'black'</span>, <span class="st">'#D2691E'</span>, <span class="st">'grey'</span>), <span class="at">guide =</span> <span class="cn">FALSE</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -586,23 +588,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>The bar plot shows that Eastern Gray squirrels with gray fur are the most commonly sighted in Central Park, with over 2,000 observations. Cinnamon-colored squirrels are less common, with several hundred sightings, while black-colored squirrels are the rarest, with fewer than 500 sightings. This is reasonable since Eastern Gray squirrels are the most prevalent squirrels in the central park.</p>
+<p>The bar plot shows that Eastern Gray squirrels with gray fur are the most commonly sighted in Central Park, with over 2,000 encounters. Cinnamon-colored squirrels are less common, with less than 500 sightings, while black-colored squirrels are the rarest, with fewer than 250 sightings.</p>
 </section>
 <section id="what-is-the-spatial-distribution-of-black-cinnamon-and-gray-morphs-of-eastern-gray-squirrels-across-central-park" class="level3" data-number="3.2.2">
 <h3 data-number="3.2.2" class="anchored" data-anchor-id="what-is-the-spatial-distribution-of-black-cinnamon-and-gray-morphs-of-eastern-gray-squirrels-across-central-park"><span class="header-section-number">3.2.2</span> What is the spatial distribution of black, cinnamon, and gray morphs of Eastern Gray squirrels across Central Park?</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>coord_sf_obj <span class="ot">&lt;-</span> squirrel_data <span class="sc">|&gt;</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_sf</span>(<span class="at">coords =</span> <span class="fu">c</span>(<span class="st">'X'</span>, <span class="st">'Y'</span>), <span class="at">crs =</span> <span class="dv">4326</span>) <span class="co"># crs=4326 refers to the "Coordinate Reference System" with EPSG code 4326. This ensures the coordinates are plot correctly.</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span> </span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_sf</span>(<span class="at">data =</span> coord_sf_obj, <span class="fu">aes</span>(<span class="at">color =</span> squirrel_data<span class="sc">$</span>Primary.Fur.Color), </span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">size =</span> <span class="fl">1.5</span>, <span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> .<span class="dv">7</span>) <span class="sc">+</span> </span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">'black'</span>, <span class="st">'#D2691E'</span>, <span class="st">'grey'</span>)) <span class="sc">+</span> </span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()  <span class="sc">+</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">'Squirrel Sighting Locations by Color'</span>, </span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> <span class="st">'Primary Fur Color'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Change the locations data into simple feature format so it can be passed into by geom_sf</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>coord_sf_obj <span class="ot">&lt;-</span> squirrel_data <span class="sc">|&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_sf</span>(<span class="at">coords =</span> <span class="fu">c</span>(<span class="st">'X'</span>, <span class="st">'Y'</span>), <span class="at">crs =</span> <span class="dv">4326</span>) <span class="co"># crs=4326 refers to the "Coordinate Reference System" with EPSG code 4326. This ensures the coordinates are plot correctly.</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_sf</span>(<span class="at">data =</span> coord_sf_obj, <span class="fu">aes</span>(<span class="at">color =</span> squirrel_data<span class="sc">$</span>Primary.Fur.Color), </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">size =</span> <span class="fl">1.5</span>, <span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> .<span class="dv">7</span>) <span class="sc">+</span> </span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">'black'</span>, <span class="st">'#D2691E'</span>, <span class="st">'grey'</span>)) <span class="sc">+</span> </span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>(<span class="dv">14</span>)  <span class="sc">+</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">expression</span>(<span class="fu">bold</span>(<span class="st">'Squirrel Sighting Locations by Color'</span>)), </span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> <span class="st">'Primary Fur Color'</span>) <span class="sc">+</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">12</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -612,15 +618,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>The map shows that Gray squirrels seem to donimate the central park. They are widespread and seen almost everywhere on the map. Cinnamon-colored squirrels are less common and appear more scattered on the lower side of the park. Black squirrels are the rarest, with only a few sightings concentrated in specific areas. Such data might because of the ways of data collection that there might only be several black squirrels and the data are clustered because different people sighted it around it’s drey at different time.</p>
+<p>The map shows that gray fur color is the dominating fur color in the central park. They spread across the central park area and are almost everywhere. Cinnamon-colored squirrels are less common and sighted mostly around the south side of the park with several scattered on the north side. Black squirrels are the rarest, with only a few sightings concentrated in specific areas such as north of the Jacqueline Kennedy Onassis Reservoir and south-east side of the park.</p>
 </section>
 <section id="how-do-sighted-behaviors-differ-among-black-cinnamon-and-gray-morphs-of-eastern-gray-squirrels-in-central-park" class="level3" data-number="3.2.3">
 <h3 data-number="3.2.3" class="anchored" data-anchor-id="how-do-sighted-behaviors-differ-among-black-cinnamon-and-gray-morphs-of-eastern-gray-squirrels-in-central-park"><span class="header-section-number">3.2.3</span> How do sighted behaviors differ among black, cinnamon, and gray morphs of Eastern Gray squirrels in Central Park?</h3>
-<p>As the number of squirrels with different colors are largely imbalanced, we plot the stacked proportion bar plot to explore if sighted behaviors differ among black, cinnamon, and gray squirrels.</p>
+<p>As the number of squirrels with different colors are largely imbalanced, we wish to explore if sighted behaviors differ among black, cinnamon, and gray squirrels.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># assuming squirrel_data has columns like Primary.Fur.Color, Running, Chasing, Climbing, Eating, Foraging </span></span>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Use pivot longer to reduce the column numbers for plotting</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>proportion_data <span class="ot">&lt;-</span> squirrel_data <span class="sc">|&gt;</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="fu">c</span>(Running, Chasing, Climbing, Eating, Foraging), </span>
@@ -636,13 +642,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"fill"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
 <span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">percent_format</span>()) <span class="sc">+</span></span>
 <span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Proportion of Behaviors by Primary Fur Color"</span>,</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="fu">expression</span>(<span class="fu">bold</span>(<span class="st">'Squirrel Behaviors by Primary Fur Color'</span>)),</span>
 <span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Primary Fur Color"</span>,</span>
 <span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Proportion of Squirrels"</span>,</span>
 <span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"Behavior"</span></span>
 <span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_paletteer_d</span>(<span class="st">"ggthemes::Miller_Stone"</span>, <span class="at">direction =</span> <span class="sc">-</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>)) <span class="sc">+</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_paletteer_d</span>(<span class="st">"ggthemes::Miller_Stone"</span>, <span class="at">direction =</span> <span class="sc">-</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -652,7 +659,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>The plot shows that in Central Park appears uniform across fur colors, with foraging and running being the most frequent activities while squirrels are sighted.</p>
+<p>However, the difference seems to stay only on primary fur colors. The proportion of behaviors are very similar across squirrels with different fur colors. Foraging is the most frequent sighted activities, taking more than 25%. Climbing, eating and running are all around 20%. Chasing is the least sighted activity, only about 5%.</p>
 
 
 </section>

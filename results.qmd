@@ -287,9 +287,8 @@ First we want to explain the difference between three vocalizations. Kuks is a c
 For all sightings where squirrels approaches human, they make Kuks sound regardless of their locations, indicating they do not see humans as a potential threat. Moans only occurs when squirrels run away from human and were sighted about the ground. However this sound indicate the presence of air predators. Therefore, they could be running away for a different reason. Overall squirrels seem to make Kuks and Quaas in a similar frequency in different location and with different reactions.
 
 ## Exploration of squirrels of different Primary Fur Color 
-**General Questions**: How do black, cinnamon and standard gray morphs of Eastern Gray squirrels (Sciurus Carolinensis) differ in their spatial distributions and activity patterns in Central Park?
 
-
+While all these squirrels are Eastern Gray squirrels, not all of them have gray fur color. The Primary Fur Color column in our dataset documents the color of the squirrels being sighted. We wonder if there is any interesting difference if we look at squirrels with different colors separately. We will explore that in this section.
 
 ### What is the total number of sightings of black, cinnamon, and gray morphs of Eastern Gray squirrels within Central Park?
 
@@ -298,20 +297,23 @@ For all sightings where squirrels approaches human, they make Kuks sound regardl
 ggplot(squirrel_data, aes(x = fct_infreq(Primary.Fur.Color), fill = Primary.Fur.Color)) +
   geom_bar() +
   labs(
-    title = "Counts by Primary Fur Color",
+    title = expression(bold("Counts by Primary Fur Color")),
     x = "Primary Fur Color",
     y = "Count of Squirrels"
   ) +
-  theme(legend.position = "none") +
-  theme_minimal() +
+  theme_minimal(14) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(hjust = 0.5)) +
   scale_fill_manual(values = c('black', '#D2691E', 'grey'), guide = FALSE) 
 ```
 
-The bar plot shows that Eastern Gray squirrels with gray fur are the most commonly sighted in Central Park, with over 2,000 observations. Cinnamon-colored squirrels are less common, with several hundred sightings, while black-colored squirrels are the rarest, with fewer than 500 sightings. This is reasonable since Eastern Gray squirrels are the most prevalent squirrels in the central park. 
+The bar plot shows that Eastern Gray squirrels with gray fur are the most commonly sighted in Central Park, with over 2,000 encounters. Cinnamon-colored squirrels are less common, with less than 500 sightings, while black-colored squirrels are the rarest, with fewer than 250 sightings. 
 
 ### What is the spatial distribution of black, cinnamon, and gray morphs of Eastern Gray squirrels across Central Park?
 
 ```{r fig.width=10, fig.height=8}
+# Change the locations data into simple feature format so it can be passed into by geom_sf
 coord_sf_obj <- squirrel_data |>
   st_as_sf(coords = c('X', 'Y'), crs = 4326) # crs=4326 refers to the "Coordinate Reference System" with EPSG code 4326. This ensures the coordinates are plot correctly.
 
@@ -319,19 +321,22 @@ ggplot() +
     geom_sf(data = coord_sf_obj, aes(color = squirrel_data$Primary.Fur.Color), 
             size = 1.5, shape = 1, alpha = .7) + 
     scale_colour_manual(values = c('black', '#D2691E', 'grey')) + 
-    theme_minimal()  +
-    labs(title = 'Squirrel Sighting Locations by Color', 
-         color = 'Primary Fur Color')
+    theme_minimal(14)  +
+    labs(title = expression(bold('Squirrel Sighting Locations by Color')), 
+         color = 'Primary Fur Color') +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 12))
 ```
 
-The map shows that Gray squirrels seem to donimate the central park. They are widespread and seen almost everywhere on the map. Cinnamon-colored squirrels are less common and appear more scattered on the lower side of the park. Black squirrels are the rarest, with only a few sightings concentrated in specific areas. Such data might because of the ways of data collection that there might only be several black squirrels and the data are clustered because different people sighted it around it's drey at different time.  
+The map shows that gray fur color is the dominating fur color in the central park. They spread across the central park area and are almost everywhere. Cinnamon-colored squirrels are less common and sighted mostly around the south side of the park with several scattered on the north side. Black squirrels are the rarest, with only a few sightings concentrated in specific areas such as north of the Jacqueline Kennedy Onassis Reservoir and south-east side of the park.   
 
 ### How do sighted behaviors differ among black, cinnamon, and gray morphs of Eastern Gray squirrels in Central Park?
 
-As the number of squirrels with different colors are largely imbalanced, we plot the stacked proportion bar plot to explore if sighted behaviors differ among black, cinnamon, and gray squirrels. 
+As the number of squirrels with different colors are largely imbalanced, we wish to explore if sighted behaviors differ among black, cinnamon, and gray squirrels. 
 
 ```{r, message=FALSE, warning=FALSE}
-# assuming squirrel_data has columns like Primary.Fur.Color, Running, Chasing, Climbing, Eating, Foraging 
+# Use pivot longer to reduce the column numbers for plotting
 proportion_data <- squirrel_data |>
   pivot_longer(
     cols = c(Running, Chasing, Climbing, Eating, Foraging), 
@@ -347,14 +352,15 @@ ggplot(proportion_data, aes(x = Primary.Fur.Color, y = Count, fill = Behavior)) 
   geom_col(position = "fill", color = "black") +
   scale_y_continuous(labels = scales::percent_format()) +
   labs(
-    title = "Proportion of Behaviors by Primary Fur Color",
+    title = expression(bold('Squirrel Behaviors by Primary Fur Color')),
     x = "Primary Fur Color",
     y = "Proportion of Squirrels",
     fill = "Behavior"
   ) +
-  theme_minimal() +
+  theme_minimal(14) +
+  theme(plot.title = element_text(hjust = 0.5)) +
   scale_fill_paletteer_d("ggthemes::Miller_Stone", direction = -1)
 ```
 
-The plot shows that in Central Park appears uniform across fur colors, with foraging and running being the most frequent activities while squirrels are sighted. 
+However, the difference seems to stay only on primary fur colors. The proportion of behaviors are very similar across squirrels with different fur colors. Foraging is the most frequent sighted activities, taking more than 25%. Climbing, eating and running are all around 20%. Chasing is the least sighted activity, only about 5%.
 

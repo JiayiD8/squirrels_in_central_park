@@ -21,7 +21,7 @@ library(paletteer)
 library(scales)
 
 # Data preprocessing
-squirrel_data <- read.csv("./2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv")
+squirrel_data <- read.csv("data/2018_Central_Park_Squirrel_Census_-_Squirrel_Data_20241120.csv")
 squirrel_data <- squirrel_data |>
   mutate(across(everything(), ~ na_if(as.character(.), ""))) |>
   drop_na(Age, Location, Primary.Fur.Color) |>
